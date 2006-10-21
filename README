@@ -1,0 +1,21 @@
+ActsAsPreferenced
+=================
+
+user.preferred_email_address (text)
+user.prefers_milk? (boolean)
+user.preferred_color (enum)
+
+preference :email_address (infers :any)
+preference :email_address,  :any
+preference :milk,           :boolean, :default => true
+preference :color,          :enum,    :in => %w(red white blue), :default => 'red'
+
+# If user can choose what products to hide:
+user.prefers_hidden_for?(product)
+user.preferred_color_for?(product)
+
+preference :hiddden, :boolean, :default => false, :for => 'Product'
+preference :color,   :enum,    :in => %w(red white blue), :default => 'red', :for => 'Product'
+
+# If you want to specify different specs for a different type
+preference :color,   :enum,    :in => %w(black white), :default => 'white', :for => 'Car'
