@@ -183,7 +183,7 @@ module PluginAWeek #:nodoc:
           end
           
           definition = self::PreferenceDefinition.find_by_name(name)
-          raise InvalidPreferenceDefinition, 'Preference definition for #{name} not found for #{self.name}' if definition.nil?
+          raise InvalidPreferenceDefinition, "Preference definition for #{name} not found for #{self.name}" if definition.nil?
           
           class_eval <<-end_eval
             def #{prefix}_#{name}#{suffix}
@@ -227,10 +227,10 @@ module PluginAWeek #:nodoc:
           preferenced_type = preferenced_type.nil? ? self : preferenced_type.constantize
           
           name_definitions = read_inheritable_attribute(:preference_definitions)[name]
-          raise InvalidPreferenceDefinition, 'Preference definition for #{name} not found for #{self.name}' if name_definitions.nil?
+          raise InvalidPreferenceDefinition, "Preference definition for #{name} not found for #{self.name}" if name_definitions.nil?
           
           preferenced_type = name_definitions.keys.find {|type| preferenced_type <= type}
-          raise InvalidPreferenceDefinition, '#{preferenced_type} is not a preferenced type for #{name}' if preferenced_type.nil?
+          raise InvalidPreferenceDefinition, "#{preferenced_type} is not a preferenced type for #{name}" if preferenced_type.nil?
           
           name_definitions[preferenced_type]
         end
