@@ -241,3 +241,7 @@ module PluginAWeek #:nodoc:
     end
   end
 end
+
+ActiveRecord::Base.class_eval do
+  include PluginAWeek::Acts::Preferenced
+end
