@@ -63,10 +63,6 @@ module PluginAWeek #:nodoc:
             has_many  :preferences,
                         :class_name => "#{model_name}::Preference",
                         :foreign_key => 'definition_id'
-            
-            def self.reloadable?
-              false
-            end
           end
           
           # Create the Preference model
@@ -80,10 +76,6 @@ module PluginAWeek #:nodoc:
                           :foreign_key => 'definition_id'
             
             alias_method model_name.demodulize.underscore, :preferenced
-            
-            def self.reloadable?
-              false
-            end
           end
           
           write_inheritable_attribute :preference_definitions, {}
