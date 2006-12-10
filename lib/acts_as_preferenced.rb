@@ -1,3 +1,5 @@
+require 'module_creation_helper'
+
 module PluginAWeek #:nodoc:
   module Acts #:nodoc:
     module Preferenced #:nodoc:
@@ -59,14 +61,14 @@ module PluginAWeek #:nodoc:
           model_name = "::#{self.name}"
           
           # Create the Preference Definition model
-          const_set('PreferenceDefinition', Class.new(::PreferenceDefinition)).class_eval do
+          Class.create('PreferenceDefinition', :superclass => ::PreferenceDefinition, :parent => self) do
             has_many  :preferences,
                         :class_name => "#{model_name}::Preference",
                         :foreign_key => 'definition_id'
           end
           
           # Create the Preference model
-          const_set('Preference', Class.new(::Preference)).class_eval do
+          Class.create('Preference', :superclass => ::Preference, :parent => self) do
             belongs_to  :owner,
                           :class_name => model_name,
                           :foreign_key => 'owner_id'
