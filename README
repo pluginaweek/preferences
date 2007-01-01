@@ -1,5 +1,30 @@
-ActsAsPreferenced
-=================
+== acts_as_preferenced
+
+acts_as_preferenced .
+
+== Resources
+
+Wiki
+
+* http://wiki.pluginaweek.org/Acts_as_preferenced
+
+Announcement
+
+* http://www.pluginaweek.org/
+
+Source
+
+* http://svn.pluginaweek.org/trunk/plugins/active_record/acts/acts_as_preferenced
+
+Development
+
+* http://dev.pluginaweek.org/browser/trunk/plugins/active_record/acts/acts_as_preferenced
+
+== Description
+
+
+
+== Examples
 
 user.preferred_email_address (text)
 user.prefers_milk? (boolean)
