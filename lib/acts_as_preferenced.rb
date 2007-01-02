@@ -4,17 +4,14 @@ module PluginAWeek #:nodoc:
   module Acts #:nodoc:
     module Preferenced #:nodoc:
       # An unknown preference definition was specified
-      #
       class InvalidPreferenceDefinition < Exception
       end
       
       # An unknown preference type was specified
-      #
       class InvalidPreferenceType < Exception
       end
       
       # An invalid preference value was specified
-      #
       class InvalidPreferenceValue < Exception
       end
       
@@ -23,7 +20,6 @@ module PluginAWeek #:nodoc:
       end
       
       module SupportingClasses #:nodoc:
-        #
         #
         class PreferenceDefinition
           attr_reader :name
@@ -53,7 +49,6 @@ module PluginAWeek #:nodoc:
       end
       
       module MacroMethods
-        #
         #
         def acts_as_preferenced(options = {})
           options.symbolize_keys!.assert_valid_keys(:on_error)
@@ -85,12 +80,10 @@ module PluginAWeek #:nodoc:
           
           has_many :preferences, :class_name => "#{model_name}::Preference", :foreign_key => 'owner_id' do
             #
-            #
             def find_by_preferenced(definition_id, record)
               find_by_definition_id_and_preferenced_id_and_preferenced_type(definition_id, record.id, record.class.name)
             end
             
-            #
             #
             def find_or_initialize_by_preferenced(definition_id, record)
               find_by_preferenced(definition_id, record) ||
@@ -109,24 +102,20 @@ module PluginAWeek #:nodoc:
       
       module ClassMethods
         #
-        #
         def data_type_for_preference(name, preferenced_type = nil)
           get_definition_value(name, preferenced_type, :data_type)
         end
         
-        #
         #
         def possible_values_for_preference(name, preferenced_type = nil)
           get_definition_value(name, preferenced_type, :possible_values)
         end
         
         #
-        #
         def default_value_for_preference(name, preferenced_type = nil)
           get_definition_value(name, preferenced_type, :default_value)
         end
         
-        #
         #
         def valid_preference?(name, preferenced_type = nil)
           begin
@@ -137,7 +126,6 @@ module PluginAWeek #:nodoc:
           end
         end
         
-        #
         #
         def preference(name, type, options = {})
           options.symbolize_keys!.reverse_merge!(
@@ -160,7 +148,6 @@ module PluginAWeek #:nodoc:
         private
         VALID_PREFERENCE_TYPES = [:boolean, :enum, :any]
         
-        #
         #
         def define_preference_accessors(name, type) #:nodoc:
           type = type.to_sym
@@ -209,13 +196,11 @@ module PluginAWeek #:nodoc:
         end
         
         #
-        #
         def get_definition_value(name, preferenced_type, value_name) #:nodoc:
           definition = get_definition(name, preferenced_type)
           definition.send(value_name)
         end
         
-        #
         #
         def get_definition(name, preferenced_type)
           preferenced_type = preferenced_type.nil? ? self : preferenced_type.constantize
