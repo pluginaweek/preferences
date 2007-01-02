@@ -10,7 +10,7 @@ class CreatePreferences < ActiveRecord::Migration
       t.column :created_at,       :timestamp, :null => false
       t.column :updated_at,       :datetime,  :null => false
     end
-    add_index :preferences, [:owner_id, :definition_id, :preferenced_id, :type, :preferenced_type], :unique => true, :name => 'unique_preferences'
+    add_index :preferences, [:owner_id, :definition_id, :preferenced_id, :type, :preferenced_type], :unique => true, :name => 'index_preferences_on_owner_and_definition_and_preference'
   end
   
   def self.down

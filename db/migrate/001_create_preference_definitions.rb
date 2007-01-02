@@ -8,7 +8,7 @@ class CreatePreferenceDefinitions < ActiveRecord::Migration
       t.column :updated_at,   :datetime,  :null => false
       t.column :deleted_at,   :datetime
     end
-    add_index :preference_definitions, [:type, :name], :unique => true, :name => 'unique_preference_definitions'
+    add_index :preference_definitions, [:type, :name], :unique => true
   end
   
   def self.down
