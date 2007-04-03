@@ -1,4 +1,4 @@
-require 'module_creation_helper'
+require 'class_associations'
 
 module PluginAWeek #:nodoc:
   module Acts #:nodoc:
@@ -49,42 +49,22 @@ module PluginAWeek #:nodoc:
       end
       
       module MacroMethods
-        #
+        # 
         def acts_as_preferenced(options = {})
           options.symbolize_keys!.assert_valid_keys(:on_error)
-          
-          model_name = "::#{self.name}"
-          
-          # Create the Preference Definition model
-          Class.create('PreferenceDefinition', :superclass => ::PreferenceDefinition, :parent => self) do
-            has_many  :preferences,
-                        :class_name => "#{model_name}::Preference",
-                        :foreign_key => 'definition_id'
-          end
-          
-          # Create the Preference model
-          Class.create('Preference', :superclass => ::Preference, :parent => self) do
-            belongs_to  :owner,
-                          :class_name => model_name,
-                          :foreign_key => 'owner_id'
-            
-            belongs_to  :definition,
-                          :class_name => "#{model_name}::PreferenceDefinition",
-                          :foreign_key => 'definition_id'
-            
-            alias_method model_name.demodulize.underscore, :preferenced
-          end
           
           write_inheritable_attribute :preference_definitions, {}
           write_inheritable_attribute :preference_error_handler, options[:on_error]
           
-          has_many :preferences, :class_name => "#{model_name}::Preference", :foreign_key => 'owner_id' do
-            #
+          has_many  :preferences,
+                      :as => :owner,
+                      :dependent => :destroy do
+            # 
             def find_by_preferenced(definition_id, record)
               find_by_definition_id_and_preferenced_id_and_preferenced_type(definition_id, record.id, record.class.name)
             end
             
-            #
+            # 
             def find_or_initialize_by_preferenced(definition_id, record)
               find_by_preferenced(definition_id, record) ||
               build(
@@ -93,6 +73,11 @@ module PluginAWeek #:nodoc:
                 :preferenced_type => record.class.name
               )
             end
+          end
+          
+          class << self
+            has_many  :preference_definitions,
+                        :include_superclasses => true
           end
           
           extend PluginAWeek::Acts::Preferenced::ClassMethods
@@ -163,7 +148,7 @@ module PluginAWeek #:nodoc:
             query_value = 'value'
           end
           
-          definition = self::PreferenceDefinition.find_by_name(name)
+          definition = self.preference_definitions.find_by_name(name)
           raise InvalidPreferenceDefinition, "Preference definition for #{name} not found for #{self.name}" if definition.nil?
           
           class_eval <<-end_eval
@@ -195,13 +180,13 @@ module PluginAWeek #:nodoc:
           end_eval
         end
         
-        #
+        # 
         def get_definition_value(name, preferenced_type, value_name) #:nodoc:
           definition = get_definition(name, preferenced_type)
           definition.send(value_name)
         end
         
-        #
+        # 
         def get_definition(name, preferenced_type)
           preferenced_type = preferenced_type.nil? ? self : preferenced_type.constantize
           
