@@ -27,11 +27,11 @@ common idiom.  Although the rule of thumb is to keep the number of preferences
 available to a minimum, sometimes it's necessary if you want users to be able to
 disable things like e-mail notifications.
 
-Generally, basic preferences can be accomplish through simple designs, such as
+Generally, basic preferences can be accomplished through simple designs, such as
 additional columns or a bit vector described and implemented by preference_fu[http://agilewebdevelopment.com/plugins/preferencefu].
 However, as you find the need for non-binary preferences and the number of
 preferences becomes unmanageable as individual columns in the database, the next
-step is often to create a seprate "preferences" table.  This is where the +preferences+
+step is often to create a separate "preferences" table.  This is where the +preferences+
 plugin comes in.
 
 +preferences+ encapsulates this design by hiding the fact that preferences are
@@ -60,7 +60,7 @@ In the above model, 5 preferences have been defined:
 * language
 
 For each preference, a data type and default value can be specified.  If no
-data type is given, it's considered a boolean value.  If not default value is
+data type is given, it's considered a boolean value.  If no default value is
 given, the default is assumed to be nil.
 
 === Accessing preferences
@@ -88,7 +88,7 @@ Writer methods:
 ==== Generic methods
 
 Each shortcut method is essentially a wrapper for the various generic methods
-show below:
+shown below:
 
 Query method:
   user.prefers?(:hot_salsa)       # => false
@@ -104,7 +104,7 @@ Write method:
 
 === Accessing all preferences
 
-To get the collection of all preferences for a particular user, you can access
+To get the collection of all preferences for a particular record, you can access
 the +preferences+ has_many association which is automatically generated:
 
   user.preferences
@@ -138,7 +138,7 @@ are treated in a similar fashion to attributes.  For example,
   user.attributes = {:preferred_color => 'red'}
   user.save!
 
-Preferences are stored in a separate table assumed to be called "preferences".
+Preferences are stored in a separate table called "preferences".
 
 == Testing
 
