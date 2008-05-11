@@ -1,26 +1,34 @@
+# Represents a preferred value for a particular preference on a model.
 # 
+# == Targeted preferences
+# 
+# In addition to simple named preferences, preferences can also be targeted for
+# a particular record.  For example, a User may have a preferred color for a
+# particular Car.  In this case, the +owner+ is the User, the +preference+ is
+# the color, and the +target+ is the Car.  This allows preferences to have a sort
+# of context around them.
 class Preference < ActiveRecord::Base
-  belongs_to            :definition,
-                          :class_name => 'PreferenceDefinition',
-                          :foreign_key => 'definition_id'
-  belongs_to            :owner,
-                          :polymorphic => true
-  belongs_to            :preferenced,
-                          :polymorphic => true
+  belongs_to  :owner,
+                :polymorphic => true
+  belongs_to  :preferenced,
+                :polymorphic => true
   
-  validates_presence_of :definition_id,
+  validates_presence_of :attribute,
                         :owner_id,
-                        :preferenced_id,
-                        :preferenced_type
-                        
-  delegate              :default_value,
-                        :data_type,
-                        :possible_values,
-                          :to => :definition
+                        :owner_type
+  validates_presence_of :preferenced_id,
+                        :preferenced_type,
+                          :if => Proc.new {|p| p.preferenced_id? || p.preferenced_type?}
   
-  # 
-  def validate
-    @errors.add 'preferenced_type', 'is not a valid type' unless definition.valid_preference?(preferenced_type)
-    @errors.add 'value', "must be #{possible_values.to_sentence(:connector => 'or')}" unless definition.valid_value?(value)
+  # The definition for the attribute
+  def definition
+    owner_type.constantize.preference_definitions[attribute] if owner_type
+  end
+  
+  # Typecasts the value depending on the preference definition's declared type
+  def value
+    value = read_attribute(:value)
+    value = definition.type_cast(value) if definition
+    value
   end
 end

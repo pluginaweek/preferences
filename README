@@ -1,46 +1,146 @@
-== acts_as_preferenced
+== preferences
 
-acts_as_preferenced .
++preferences+ adds support for easily creating custom preferences for models.
 
 == Resources
 
 Wiki
 
-* http://wiki.pluginaweek.org/Acts_as_preferenced
-
-Announcement
-
-* http://www.pluginaweek.org/
+* http://wiki.pluginaweek.org/Preferences
 
 Source
 
-* http://svn.pluginaweek.org/trunk/plugins/active_record/acts/acts_as_preferenced
+* http://svn.pluginaweek.org/trunk/plugins/preferences
 
 Development
 
-* http://dev.pluginaweek.org/browser/trunk/plugins/active_record/acts/acts_as_preferenced
+* http://dev.pluginaweek.org/browser/trunk/preferences
 
 == Description
 
+Preferences for models within an application, such as for users, is a pretty
+common idiom.  Although the rule of thumb is to keep the number of preferences
+available to a minimum, sometimes it's necessary if you want users to be able to
+disable things like e-mail notifications.
 
+Generally, basic preferences can be accomplish through simple designs, such as
+additional columns or a bit vector described and implemented by preference_fu[http://agilewebdevelopment.com/plugins/preferencefu].
+However, as you find the need for non-binary preferences and the number of
+preferences becomes unmanageable as individual columns in the database, the next
+step is often to create a seprate "preferences" table.  This is where the +preferences+
+plugin comes in.
 
-== Examples
++preferences+ encapsulates this design by hiding the fact that preferences are
+stored in a separate table and making it dead-simple to define and manage
+preferences.
 
-user.preferred_email_address (text)
-user.prefers_milk? (boolean)
-user.preferred_color (enum)
+== Usage
 
-preference :email_address (infers :any)
-preference :email_address,  :any
-preference :milk,           :boolean, :default => true
-preference :color,          :enum,    :in => %w(red white blue), :default => 'red'
+=== Defining preferences
 
-# If user can choose what products to hide:
-user.prefers_hidden_for?(product)
-user.preferred_color_for?(product)
+To define the preferences for a model, you can do so right within the model:
 
-preference :hiddden, :boolean, :default => false, :for => 'Product'
-preference :color,   :enum,    :in => %w(red white blue), :default => 'red', :for => 'Product'
+  class User < ActiveRecord::Base
+    preference :hot_salsa
+    preference :dark_chocolate, :default => true
+    preference :color, :string
+    preference :favorite_number
+    preference :language, :string, :default => 'English'
+  end
 
-# If you want to specify different specs for a different type
-preference :color,   :enum,    :in => %w(black white), :default => 'white', :for => 'Car'
+In the above model, 5 preferences have been defined:
+* hot_salsa
+* dark_chocolate
+* color
+* favorite_number
+* language
+
+For each preference, a data type and default value can be specified.  If no
+data type is given, it's considered a boolean value.  If not default value is
+given, the default is assumed to be nil.
+
+=== Accessing preferences
+
+Once preferences have been defined for a model, they can be accessed either using
+the shortcut methods that are generated for each preference or the generic methods
+that are not specific to a particular preference.
+
+==== Shortcut methods
+
+There are several shortcut methods that are generated.  They are shown below.
+
+Query methods:
+  user.prefers_hot_salsa?         # => false
+  user.prefers_dark_chocolate?    # => false
+
+Reader methods:
+  user.preferred_color      # => nil
+  user.preferred_language   # => "English"
+
+Writer methods:
+  user.prefers_hot_salsa = false        # => false
+  user.preferred_language = 'English'   # => "English"
+
+==== Generic methods
+
+Each shortcut method is essentially a wrapper for the various generic methods
+show below:
+
+Query method:
+  user.prefers?(:hot_salsa)       # => false
+  user.prefers?(:dark_chocolate)  # => false
+
+Reader method:
+  user.preferred(:color)      # => nil
+  user.preferred(:language)   # => "English"
+
+Write method:
+  user.set_preference(:hot_salsa, false)      # => false
+  user.set_preference(:language, "English")   # => "English"
+
+=== Accessing all preferences
+
+To get the collection of all preferences for a particular user, you can access
+the +preferences+ has_many association which is automatically generated:
+
+  user.preferences
+
+=== Preferences for other records
+
+In addition to defining generic preferences for the owning record, you can also
+define preferences for other records.  This is best shown through an example:
+
+  user = User.find(:first)
+  car = Car.find(:first)
+  
+  user.preferred_color = 'red', {:for => car}
+  # user.set_preference(:color, 'red', :for => car) # The generic way
+
+This will create a preference for the color "red" for the given car.  In this way,
+you can have "color" preferences for different records.
+
+To access the preference for a particular record, you can use the same accessor
+methods as before:
+
+  user.preferred_color(:for => car)
+  # user.preferred(:color, :for => car) # The generic way
+
+=== Saving preferences
+
+Note that preferences are not saved until the owning record is saved.  Preferences
+are treated in a similar fashion to attributes.  For example,
+
+  user = user.find(:first)
+  user.attributes = {:preferred_color => 'red'}
+  user.save!
+
+Preferences are stored in a separate table assumed to be called "preferences".
+
+== Testing
+
+Before you can run any tests, the following gem must be installed:
+* plugin_test_helper[http://wiki.pluginaweek.org/Plugin_test_helper]
+
+== Dependencies
+
+* plugins_plus[http://wiki.pluginaweek.org/Plugins_plus]

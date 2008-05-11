@@ -1,1 +1,1 @@
-require 'acts_as_preferenced'
+require 'preferences'

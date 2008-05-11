@@ -3,7 +3,7 @@ require 'rake/rdoctask'
 require 'rake/gempackagetask'
 require 'rake/contrib/sshpublisher'
 
-PKG_NAME           = 'acts_as_preferenced'
+PKG_NAME           = 'preferences'
 PKG_VERSION        = '0.0.1'
 PKG_FILE_NAME      = "#{PKG_NAME}-#{PKG_VERSION}"
 RUBY_FORGE_PROJECT = 'pluginaweek'
@@ -11,17 +11,18 @@ RUBY_FORGE_PROJECT = 'pluginaweek'
 desc 'Default: run unit tests.'
 task :default => :test
 
-desc 'Test the acts_as_preferenced plugin.'
+desc 'Test the preferences plugin.'
 Rake::TestTask.new(:test) do |t|
   t.libs << 'lib'
   t.pattern = 'test/**/*_test.rb'
   t.verbose = true
 end
 
-desc 'Generate documentation for the acts_as_preferenced plugin.'
+desc 'Generate documentation for the preferences plugin.'
 Rake::RDocTask.new(:rdoc) do |rdoc|
   rdoc.rdoc_dir = 'rdoc'
-  rdoc.title    = 'ActsAsPreferenced'
+  rdoc.title    = 'Preferences'
+  rdoc.template = '../rdoc_template.rb'
   rdoc.options << '--line-numbers' << '--inline-source'
   rdoc.rdoc_files.include('README')
   rdoc.rdoc_files.include('lib/**/*.rb')
@@ -31,16 +32,16 @@ spec = Gem::Specification.new do |s|
   s.name            = PKG_NAME
   s.version         = PKG_VERSION
   s.platform        = Gem::Platform::RUBY
-  s.summary         = ''
+  s.summary         = 'Adds support for easily creating custom preferences for models'
   
-  s.files           = FileList['{app,db,lib,tasks,test}/**/*'].to_a + %w(init.rb MIT-LICENSE Rakefile README)
+  s.files           = FileList['{app,lib,test}/**/*'].to_a + %w(CHANGELOG init.rb MIT-LICENSE Rakefile README)
   s.require_path    = 'lib'
-  s.autorequire     = 'acts_as_preferenced'
+  s.autorequire     = 'preferences'
   s.has_rdoc        = true
   s.test_files      = Dir['test/**/*_test.rb']
   
-  s.author          = 'Aaron Pfeifer, Neil Abraham'
-  s.email           = 'info@pluginaweek.org'
+  s.author          = 'Aaron Pfeifer'
+  s.email           = 'aaron@pluginaweek.org'
   s.homepage        = 'http://www.pluginaweek.org'
 end
   
@@ -52,16 +53,16 @@ end
 
 desc 'Publish the beta gem'
 task :pgem => [:package] do
-  Rake::SshFilePublisher.new('pluginaweek@pluginaweek.org', '/home/pluginaweek/gems.pluginaweek.org/gems', 'pkg', "#{PKG_FILE_NAME}.gem").upload
+  Rake::SshFilePublisher.new('aaron@pluginaweek.org', '/home/aaron/gems.pluginaweek.org/public/gems', 'pkg', "#{PKG_FILE_NAME}.gem").upload
 end
 
 desc 'Publish the API documentation'
 task :pdoc => [:rdoc] do
-  Rake::SshDirPublisher.new('pluginaweek@pluginaweek.org', "/home/pluginaweek/api.pluginaweek.org/#{PKG_NAME}", 'rdoc').upload
+  Rake::SshDirPublisher.new('aaron@pluginaweek.org', "/home/aaron/api.pluginaweek.org/public/#{PKG_NAME}", 'rdoc').upload
 end
 
 desc 'Publish the API docs and gem'
-task :publish => [:pdoc, :release]
+task :publish => [:pgem, :pdoc, :release]
 
 desc 'Publish the release files to RubyForge.'
 task :release => [:gem, :package] do
