@@ -95,6 +95,7 @@ module PluginAWeek #:nodoc:
       def preference(attribute, *args)
         unless included_modules.include?(InstanceMethods)
           class_inheritable_hash :preference_definitions
+          self.preference_definitions = {}
           
           has_many  :preferences,
                       :as => :owner
@@ -107,7 +108,7 @@ module PluginAWeek #:nodoc:
         # Create the definition
         attribute = attribute.to_s
         definition = PreferenceDefinition.new(attribute, *args)
-        self.preference_definitions = {attribute => definition}
+        self.preference_definitions[attribute] = definition
         
         # Create short-hand helper methods, making sure that the attribute
         # is method-safe in terms of what characters are allowed
