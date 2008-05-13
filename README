@@ -145,6 +145,11 @@ Preferences are stored in a separate table called "preferences".
 Before you can run any tests, the following gem must be installed:
 * plugin_test_helper[http://wiki.pluginaweek.org/Plugin_test_helper]
 
+To run against a specific version of Rails:
+
+  rake test RAILS_FRAMEWORK_ROOT=/path/to/rails
+
 == Dependencies
 
+* Rails 2.1 or later
 * plugins_plus[http://wiki.pluginaweek.org/Plugins_plus]
