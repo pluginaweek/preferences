@@ -122,7 +122,7 @@ stored.
 === Grouping preferences
 
 In addition to defining generic preferences for the owning record, you can also
-group preferences by ActiveRecord objects or basic names.  This is best shown
+group preferences by ActiveRecord objects or arbitrary names.  This is best shown
 through an example:
 
   user = User.find(:first)
