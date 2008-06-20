@@ -7,7 +7,7 @@
 * Return hashes for the preference_values, e.g.
 
   user.preference_values              # => {'color' => 'red', 'number' => 11, 'website' => {'background' => 'white', 'foreground' => 'black'}}
-  user.preferences_values('website')  # => {'background' => 'white', 'foreground' => 'black'}
+  user.preference_values('website')  # => {'background' => 'white', 'foreground' => 'black'}
 
 * Add more generic grouping of preferences than with just other records, e.g.
 
