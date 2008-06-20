@@ -1,5 +1,20 @@
 *SVN*
 
+*0.1.0* (June 19th, 2008)
+
+* Avoid string evaluation for dynamic methods
+
+* Return hashes for the preference_values, e.g.
+
+  user.preference_values              # => {'color' => 'red', 'number' => 11, 'website' => {'background' => 'white', 'foreground' => 'black'}}
+  user.preferences_values('website')  # => {'background' => 'white', 'foreground' => 'black'}
+
+* Add more generic grouping of preferences than with just other records, e.g.
+
+  user.preferred_color('cars')
+
+* Remove support for an options hash when specifying :for associations for preference
+
 *0.0.1* (May 10th, 2008)
 
 * Initial public release

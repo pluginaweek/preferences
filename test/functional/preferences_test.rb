@@ -2,6 +2,8 @@ require "#{File.dirname(__FILE__)}/../test_helper"
 
 class PreferencesTest < Test::Unit::TestCase
   def setup
+    User.preference :notifications, :boolean
+    
     @user = User.new
   end
   
@@ -30,9 +32,17 @@ class PreferencesTest < Test::Unit::TestCase
     assert User.respond_to?(:preference_definitions)
   end
   
+  def test_should_create_default_preferences_values
+    assert User.respond_to?(:default_preference_values)
+  end
+  
   def test_should_include_new_definitions_in_preference_definitions
-    definition = User.preference :notifications
-    assert_equal definition, User.preference_definitions['notifications']
+    assert_not_nil User.preference_definitions['notifications']
+  end
+  
+  def teardown
+    User.preference_definitions.delete('notifications')
+    User.default_preference_values.delete('notifications')
   end
 end
 
@@ -59,6 +69,18 @@ class UserByDefaultTest < Test::Unit::TestCase
   
   def test_should_have_a_preferred_language
     assert_equal 'English', @user.preferred_language
+  end
+  
+  def test_should_have_only_default_preference_values
+    expected = {
+      'hot_salsa' => nil,
+      'dark_chocolate' => true,
+      'color' => nil,
+      'car' => nil,
+      'language' => 'English'
+    }
+    
+    assert_equal expected, @user.preference_values
   end
 end
 
@@ -175,6 +197,18 @@ class UserWithPreferencesTest < Test::Unit::TestCase
     assert_equal 1, @user.preferences.size
   end
   
+  def test_should_include_custom_and_default_preferences_in_preference_values
+    expected = {
+      'hot_salsa' => nil,
+      'dark_chocolate' => true,
+      'color' => nil,
+      'car' => nil,
+      'language' => 'Latin'
+    }
+    
+    assert_equal expected, @user.preference_values
+  end
+  
   def test_should_not_remove_preference_if_set_to_default
     @user.preferred_language = 'English'
     @user.save!
@@ -215,12 +249,10 @@ class UserWithPreferencesTest < Test::Unit::TestCase
   end
 end
 
-class UserWithPreferencesForOtherModelsTest < Test::Unit::TestCase
+class UserWithPreferencesForBasicGroupsTest < Test::Unit::TestCase
   def setup
-    @car = create_car
-    
     @user = create_user
-    @user.preferred_color = 'red', {:for => @car}
+    @user.preferred_color = 'red', 'cars'
     @user.save!
   end
   
@@ -228,32 +260,111 @@ class UserWithPreferencesForOtherModelsTest < Test::Unit::TestCase
     assert_equal 1, @user.preferences.size
   end
   
-  def test_should_not_have_preference_without_preferenced_record
+  def test_should_have_preference_values_for_group
+    expected = {
+      'hot_salsa' => nil,
+      'dark_chocolate' => true,
+      'color' => nil,
+      'car' => nil,
+      'language' => 'English',
+      'cars' => {
+        'hot_salsa' => nil,
+        'dark_chocolate' => true,
+        'color' => 'red',
+        'car' => nil,
+        'language' => 'English'
+      }
+    }
+    
+    assert_equal expected, @user.preference_values
+  end
+  
+  def test_should_not_have_preference_without_group
     assert_nil @user.preferred_color
   end
   
-  def test_should_have_preference_with_preferenced_record
-    assert_equal 'red', @user.preferred_color(:for => @car)
+  def test_should_have_preference_with_group
+    assert_equal 'red', @user.preferred_color('cars')
   end
   
   def test_should_modify_existing_preferences_when_saved
-    @user.preferred_color = 'blue', {:for => @car}
+    @user.preferred_color = 'blue', 'cars'
     assert @user.save
     
     @user.reload
-    assert_equal 'blue', @user.preferred_color(:for => @car)
+    assert_equal 'blue', @user.preferred_color('cars')
     assert_equal 1, @user.preferences.size
   end
   
-  def test_should_be_able_to_differentiate_between_preferenced_records
-    @different_car = create_car
-    
-    @user.preferred_color = 'blue', {:for => @different_car}
+  def test_should_be_able_to_differentiate_between_groups
+    @user.preferred_color = 'blue', 'boats'
     assert @user.save
     
     @user.reload
-    assert_equal 'red', @user.preferred_color(:for => @car)
-    assert_equal 'blue', @user.preferred_color(:for => @different_car)
+    assert_equal 'red', @user.preferred_color('cars')
+    assert_equal 'blue', @user.preferred_color('boats')
+    assert_equal 2, @user.preferences.size
+  end
+end
+
+class UserWithPreferencesForActiveRecordGroupsTest < Test::Unit::TestCase
+  def setup
+    @car = create_car
+    
+    @user = create_user
+    @user.preferred_color = 'red', @car
+    @user.save!
+  end
+  
+  def test_should_have_preferences
+    assert_equal 1, @user.preferences.size
+  end
+  
+  def test_should_have_preference_values_for_group
+    expected = {
+      'hot_salsa' => nil,
+      'dark_chocolate' => true,
+      'color' => nil,
+      'car' => nil,
+      'language' => 'English',
+      @car => {
+        'hot_salsa' => nil,
+        'dark_chocolate' => true,
+        'color' => 'red',
+        'car' => nil,
+        'language' => 'English'
+      }
+    }
+    
+    assert_equal expected, @user.preference_values
+  end
+  
+  def test_should_not_have_preference_without_group
+    assert_nil @user.preferred_color
+  end
+  
+  def test_should_have_preference_with_group
+    assert_equal 'red', @user.preferred_color(@car)
+  end
+  
+  def test_should_modify_existing_preferences_when_saved
+    @user.preferred_color = 'blue', @car
+    assert @user.save
+    
+    @user.reload
+    assert_equal 'blue', @user.preferred_color(@car)
+    assert_equal 1, @user.preferences.size
+  end
+  
+  def test_should_be_able_to_differentiate_between_groups
+    @different_car = create_car
+    
+    @user.preferred_color = 'blue', @different_car
+    assert @user.save
+    
+    @user.reload
+    assert_equal 'red', @user.preferred_color(@car)
+    assert_equal 'blue', @user.preferred_color(@different_car)
     assert_equal 2, @user.preferences.size
   end
 end

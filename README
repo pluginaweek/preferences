@@ -104,21 +104,32 @@ Write method:
 
 === Accessing all preferences
 
-To get the collection of all preferences for a particular record, you can access
-the +preferences+ has_many association which is automatically generated:
+To get the collection of all custom, stored preferences for a particular record,
+you can access the +preferences+ has_many association which is automatically
+generated:
 
   user.preferences
 
-=== Preferences for other records
+In addition to this, you can get a hash of all stored preferences *and* default
+preferences, by accessing the +preference_values+ helper:
+
+  user.preference_values  # => {"language"=>"English", "color"=>nil}
+
+This hash will contain the value for every preference that has been defined for
+the model, whether that's the default value or one that has been previously
+stored.
+
+=== Grouping preferences
 
 In addition to defining generic preferences for the owning record, you can also
-define preferences for other records.  This is best shown through an example:
+group preferences by ActiveRecord objects or basic names.  This is best shown
+through an example:
 
   user = User.find(:first)
   car = Car.find(:first)
   
-  user.preferred_color = 'red', {:for => car}
-  # user.set_preference(:color, 'red', :for => car) # The generic way
+  user.preferred_color = 'red', car
+  # user.set_preference(:color, 'red', car) # The generic way
 
 This will create a preference for the color "red" for the given car.  In this way,
 you can have "color" preferences for different records.
@@ -126,8 +137,22 @@ you can have "color" preferences for different records.
 To access the preference for a particular record, you can use the same accessor
 methods as before:
 
-  user.preferred_color(:for => car)
-  # user.preferred(:color, :for => car) # The generic way
+  user.preferred_color(car)
+  # user.preferred(:color, car) # The generic way
+
+In addition to grouping preferences for a particular record, you can also group
+preferences by name.  For example,
+
+  user = User.find(:first)
+  
+  user.preferred_color = 'red', 'automobiles'
+  user.preferred_color = 'tan', 'clothing'
+  
+  user.preferred_color('automobiles')   # => "red"
+  user.preferred_color('clothing')      # => "tan"
+
+  user.preference_values                # => {"color"=>nil, "automobiles"=>{"color"=>"red"}, "clothing=>{"color=>"tan"}}
+  user.preference_values('automobiles') # => {"color"=>"red"}
 
 === Saving preferences
 

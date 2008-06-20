@@ -79,23 +79,26 @@ module PluginAWeek #:nodoc:
       # Example:
       # 
       #   user = User.find(:first)
-      #   user.prefers_notifications?     # => false
-      #   user.prefers_color?             # => true
-      #   user.preferred_color            # => 'red'
-      #   user.preferred_color = 'blue'   # => 'blue'
+      #   user.prefers_notifications?         # => false
+      #   user.prefers_color?                 # => true
+      #   user.preferred_color                # => 'red'
+      #   user.preferred_color = 'blue'       # => 'blue'
       #   
       #   user.prefers_notifications = true
       #   
       #   car = Car.find(:first)
-      #   user.preferred_color = 'red', {:for => car}   # => 'red'
-      #   user.preferred_color(:for => car)             # => 'red'
-      #   user.prefers_color?(:for => car)              # => true
+      #   user.preferred_color = 'red', car   # => 'red'
+      #   user.preferred_color(car)           # => 'red'
+      #   user.prefers_color?(car)            # => true
       #   
       #   user.save!  # => true
       def preference(attribute, *args)
         unless included_modules.include?(InstanceMethods)
           class_inheritable_hash :preference_definitions
           self.preference_definitions = {}
+          
+          class_inheritable_hash :default_preference_values
+          self.default_preference_values = {}
           
           has_many  :preferences,
                       :as => :owner
@@ -109,72 +112,119 @@ module PluginAWeek #:nodoc:
         attribute = attribute.to_s
         definition = PreferenceDefinition.new(attribute, *args)
         self.preference_definitions[attribute] = definition
+        self.default_preference_values[attribute] = definition.default_value
         
         # Create short-hand helper methods, making sure that the attribute
         # is method-safe in terms of what characters are allowed
         attribute = attribute.gsub(/[^A-Za-z0-9_-]/, '').underscore
-        class_eval <<-end_eval
-          def prefers_#{attribute}?(options = {})
-            prefers?(#{attribute.dump}, options)
-          end
-          
-          def prefers_#{attribute}=(args)
-            set_preference(*([#{attribute.dump}] + [args].flatten))
-          end
-          
-          def preferred_#{attribute}(options = {})
-            preferred(#{attribute.dump}, options)
-          end
-          
-          alias_method :preferred_#{attribute}=, :prefers_#{attribute}=
-        end_eval
+        
+        # Query lookup
+        define_method("prefers_#{attribute}?") do |*group|
+          prefers?(attribute, group.first)
+        end
+        
+        # Writer
+        define_method("prefers_#{attribute}=") do |*args|
+          set_preference(*([attribute] + [args].flatten))
+        end
+        alias_method "preferred_#{attribute}=", "prefers_#{attribute}="
+        
+        # Reader
+        define_method("preferred_#{attribute}") do |*group|
+          preferred(attribute, group.first)
+        end
         
         definition
       end
     end
     
     module InstanceMethods
+      # Finds all preferences, including defaults, for the current record.  If
+      # any custom group preferences have been stored, then this will include
+      # all default preferences within that particular group.
+      # 
+      # == Examples
+      # 
+      # A user with no stored values:
+      #   user = User.find(:first)
+      #   user.preference_values
+      #   => {"language"=>"English", "color"=>nil}
+      #   
+      # A user with stored values for a particular group:
+      #   user.preferred_color = 'red', 'cars'
+      #   user.preference_values
+      #   => {"language"=>"English", "color"=>nil, "cars"=>{"language=>"English", "color"=>"red"}}
+      #   
+      # Getting preference values for the owning record:
+      #   user.preference_values(nil)
+      #   => {"language"=>"English", "color"=>nil}
+      #   
+      # Getting preference values for a particular group:
+      #   user.preference_values('cars')
+      #   => {"language"=>"English", "color"=>"red"}
+      def preference_values(*args)
+        if args.any?
+          group = args.first
+          group_id, group_type = Preference.split_group(group)
+          conditions = {:group_id => group_id, :group_type => group_type}
+        else
+          conditions = {}
+        end
+        
+        # Find all of the stored preferences
+        stored_preferences = preferences.find(:all, :conditions => conditions)
+        
+        # Hashify attribute -> value or group -> attribute -> value
+        stored_preferences.inject(self.class.default_preference_values.dup) do |preferences, preference|
+          if group = preference.group
+            preference_group = preferences[group] ||= self.class.default_preference_values.dup
+          else
+            preference_group = preferences
+          end
+          
+          preference_group[preference.attribute] = preference.value
+          preferences
+        end
+      end
+      
       # Queries whether or not a value has been specified for the given attribute.
       # This is dependent on how the value is type-casted.
-      # 
-      # Configuration options:
-      # * +for+ - The record being preferenced
       # 
       # == Examples
       # 
       #   user = User.find(:first)
-      #   user.prefers?(:notifications)   # => true
+      #   user.prefers?(:notifications)             # => true
+      #   
+      #   user.prefers(:notifications, 'error')     # => true
       #   
       #   newsgroup = Newsgroup.find(:first)
-      #   user.prefers?(:notifications, :for => newsgroup)  # => false
-      def prefers?(attribute, options = {})
+      #   user.prefers?(:notifications, newsgroup)  # => false
+      def prefers?(attribute, group = nil)
         attribute = attribute.to_s
         
-        value = preferred(attribute, options)
+        value = preferred(attribute, group)
         preference_definitions[attribute].query(value)
       end
       
       # Gets the preferred value for the given attribute.
       # 
-      # Configuration options:
-      # * +for+ - The record being preferenced
-      # 
       # == Examples
       # 
       #   user = User.find(:first)
-      #   user.preferred(:color)    # => 'red'
+      #   user.preferred(:color)          # => 'red'
+      #   
+      #   user.preferred(:color, 'cars')  # => 'blue'
       #   
       #   car = Car.find(:first)
-      #   user.preferred(:color, :for => car) # => 'black'
-      def preferred(attribute, options = {})
-        options.assert_valid_keys(:for)
+      #   user.preferred(:color, car)     # => 'black'
+      def preferred(attribute, group = nil)
         attribute = attribute.to_s
         
-        if @preference_values && @preference_values[attribute] && @preference_values[attribute].include?(options[:for])
-          value = @preference_values[attribute][options[:for]]
+        if @preference_values && @preference_values[attribute] && @preference_values[attribute].include?(group)
+          value = @preference_values[attribute][group]
         else
-          preferenced_id, preferenced_type = options[:for].id, options[:for].class.base_class.name.to_s if options[:for]
-          preference = preferences.find(:first, :conditions => {:attribute => attribute, :preferenced_id => preferenced_id, :preferenced_type => preferenced_type})
+          group_id, group_type = Preference.split_group(group)
+          preference = preferences.find(:first, :conditions => {:attribute => attribute, :group_id => group_id, :group_type => group_type})
           value = preference ? preference.value : preference_definitions[attribute].default_value
         end
         
@@ -184,9 +234,6 @@ module PluginAWeek #:nodoc:
       # Sets a new value for the given attribute.  The actual Preference record
       # is *not* created until the actual record is saved.
       # 
-      # Configuration options:
-      # * +for+ - The record being preferenced
-      # 
       # == Examples
       # 
       #   user = User.find(:first)
@@ -194,15 +241,14 @@ module PluginAWeek #:nodoc:
       #   user.save!
       #   
       #   newsgroup = Newsgroup.find(:first)
-      #   user.set_preference(:notifications, true, :for => newsgroup)  # => true
+      #   user.set_preference(:notifications, true, newsgroup)  # => true
       #   user.save!
-      def set_preference(attribute, value, options = {})
-        options.assert_valid_keys(:for)
+      def set_preference(attribute, value, group = nil)
         attribute = attribute.to_s
         
         @preference_values ||= {}
         @preference_values[attribute] ||= {}
-        @preference_values[attribute][options[:for]] = value
+        @preference_values[attribute][group] = value
         
         value
       end
@@ -212,10 +258,10 @@ module PluginAWeek #:nodoc:
         # was last saved
         def update_preferences
           if @preference_values
-            @preference_values.each do |attribute, preferenced_records|
-              preferenced_records.each do |preferenced, value|
-                preferenced_id, preferenced_type = preferenced.id, preferenced.class.base_class.name.to_s if preferenced
-                attributes = {:attribute => attribute, :preferenced_id => preferenced_id, :preferenced_type => preferenced_type}
+            @preference_values.each do |attribute, grouped_records|
+              grouped_records.each do |group, value|
+                group_id, group_type = Preference.split_group(group)
+                attributes = {:attribute => attribute, :group_id => group_id, :group_type => group_type}
                 
                 # Find an existing preference or build a new one
                 preference = preferences.find(:first, :conditions => attributes) ||  preferences.build(attributes)
