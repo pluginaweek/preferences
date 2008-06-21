@@ -4,7 +4,7 @@ require 'rake/gempackagetask'
 require 'rake/contrib/sshpublisher'
 
 PKG_NAME           = 'preferences'
-PKG_VERSION        = '0.1.0'
+PKG_VERSION        = '0.1.1'
 PKG_FILE_NAME      = "#{PKG_NAME}-#{PKG_VERSION}"
 RUBY_FORGE_PROJECT = 'pluginaweek'
 

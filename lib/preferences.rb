@@ -53,7 +53,7 @@ module PluginAWeek #:nodoc:
       # 
       # After the first preference is defined, the following associations are
       # created for the model:
-      # * +preferences+ - A collection of all the preferences specified for a record
+      # * +stored_preferences+ - A collection of all the custom preferences specified for a record
       # 
       # == Generated shortcut methods
       # 
@@ -97,11 +97,12 @@ module PluginAWeek #:nodoc:
           class_inheritable_hash :preference_definitions
           self.preference_definitions = {}
           
-          class_inheritable_hash :default_preference_values
-          self.default_preference_values = {}
+          class_inheritable_hash :default_preferences
+          self.default_preferences = {}
           
-          has_many  :preferences,
-                      :as => :owner
+          has_many  :stored_preferences,
+                      :as => :owner,
+                      :class_name => 'Preference'
           
           after_save :update_preferences
           
@@ -112,7 +113,7 @@ module PluginAWeek #:nodoc:
         attribute = attribute.to_s
         definition = PreferenceDefinition.new(attribute, *args)
         self.preference_definitions[attribute] = definition
-        self.default_preference_values[attribute] = definition.default_value
+        self.default_preferences[attribute] = definition.default_value
         
         # Create short-hand helper methods, making sure that the attribute
         # is method-safe in terms of what characters are allowed
@@ -147,22 +148,22 @@ module PluginAWeek #:nodoc:
       # 
       # A user with no stored values:
       #   user = User.find(:first)
-      #   user.preference_values
+      #   user.preferences
       #   => {"language"=>"English", "color"=>nil}
       #   
       # A user with stored values for a particular group:
       #   user.preferred_color = 'red', 'cars'
-      #   user.preference_values
+      #   user.preferences
       #   => {"language"=>"English", "color"=>nil, "cars"=>{"language=>"English", "color"=>"red"}}
       #   
       # Getting preference values for the owning record:
-      #   user.preference_values(nil)
+      #   user.preferences(nil)
       #   => {"language"=>"English", "color"=>nil}
       #   
       # Getting preference values for a particular group:
-      #   user.preference_values('cars')
+      #   user.preferences('cars')
       #   => {"language"=>"English", "color"=>"red"}
-      def preference_values(*args)
+      def preferences(*args)
         if args.any?
           group = args.first
           group_id, group_type = Preference.split_group(group)
@@ -172,12 +173,12 @@ module PluginAWeek #:nodoc:
         end
         
         # Find all of the stored preferences
-        stored_preferences = preferences.find(:all, :conditions => conditions)
+        stored_preferences = self.stored_preferences.find(:all, :conditions => conditions)
         
         # Hashify attribute -> value or group -> attribute -> value
-        stored_preferences.inject(self.class.default_preference_values.dup) do |preferences, preference|
+        stored_preferences.inject(self.class.default_preferences.dup) do |preferences, preference|
           if group = preference.group
-            preference_group = preferences[group] ||= self.class.default_preference_values.dup
+            preference_group = preferences[group] ||= self.class.default_preferences.dup
           else
             preference_group = preferences
           end
@@ -224,7 +225,7 @@ module PluginAWeek #:nodoc:
           value = @preference_values[attribute][group]
         else
           group_id, group_type = Preference.split_group(group)
-          preference = preferences.find(:first, :conditions => {:attribute => attribute, :group_id => group_id, :group_type => group_type})
+          preference = stored_preferences.find(:first, :conditions => {:attribute => attribute, :group_id => group_id, :group_type => group_type})
           value = preference ? preference.value : preference_definitions[attribute].default_value
         end
         
@@ -264,7 +265,7 @@ module PluginAWeek #:nodoc:
                 attributes = {:attribute => attribute, :group_id => group_id, :group_type => group_type}
                 
                 # Find an existing preference or build a new one
-                preference = preferences.find(:first, :conditions => attributes) ||  preferences.build(attributes)
+                preference = stored_preferences.find(:first, :conditions => attributes) ||  stored_preferences.build(attributes)
                 preference.value = value
                 preference.save!
               end

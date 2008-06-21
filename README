@@ -105,15 +105,15 @@ Write method:
 === Accessing all preferences
 
 To get the collection of all custom, stored preferences for a particular record,
-you can access the +preferences+ has_many association which is automatically
+you can access the +stored_preferences+ has_many association which is automatically
 generated:
 
-  user.preferences
+  user.stored_preferences
 
 In addition to this, you can get a hash of all stored preferences *and* default
-preferences, by accessing the +preference_values+ helper:
+preferences, by accessing the +preferences+ helper:
 
-  user.preference_values  # => {"language"=>"English", "color"=>nil}
+  user.preferences  # => {"language"=>"English", "color"=>nil}
 
 This hash will contain the value for every preference that has been defined for
 the model, whether that's the default value or one that has been previously
@@ -151,8 +151,8 @@ preferences by name.  For example,
   user.preferred_color('automobiles')   # => "red"
   user.preferred_color('clothing')      # => "tan"
 
-  user.preference_values                # => {"color"=>nil, "automobiles"=>{"color"=>"red"}, "clothing=>{"color=>"tan"}}
-  user.preference_values('automobiles') # => {"color"=>"red"}
+  user.preferences                # => {"color"=>nil, "automobiles"=>{"color"=>"red"}, "clothing=>{"color=>"tan"}}
+  user.preferences('automobiles') # => {"color"=>"red"}
 
 === Saving preferences
 

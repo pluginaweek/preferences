@@ -1,5 +1,11 @@
 *SVN*
 
+*0.1.1* (June 20th, 2008)
+
+* Rename preference_values hash to preferences
+
+* Rename preferences association to stored_preferences
+
 *0.1.0* (June 19th, 2008)
 
 * Avoid string evaluation for dynamic methods

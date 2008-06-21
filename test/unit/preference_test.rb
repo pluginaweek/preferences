@@ -133,7 +133,7 @@ class PreferenceAfterBeingCreatedTest < Test::Unit::TestCase
   
   def teardown
     User.preference_definitions.delete('notifications')
-    User.default_preference_values.delete('notifications')
+    User.default_preferences.delete('notifications')
   end
 end
 
@@ -186,6 +186,6 @@ class PreferenceWithBooleanAttributeTest < Test::Unit::TestCase
   
   def teardown
     User.preference_definitions.delete('notifications')
-    User.default_preference_values.delete('notifications')
+    User.default_preferences.delete('notifications')
   end
 end
