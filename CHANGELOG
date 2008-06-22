@@ -1,5 +1,9 @@
 *SVN*
 
+*0.1.2* (June 22nd, 2008)
+
+* Remove log files from gems
+
 *0.1.1* (June 20th, 2008)
 
 * Rename preference_values hash to preferences
