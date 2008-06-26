@@ -4,21 +4,21 @@
 
 == Resources
 
-Wiki
-
-* http://wiki.pluginaweek.org/Preferences
-
 API
 
 * http://api.pluginaweek.org/preferences
 
+Bugs
+
+* http://pluginaweek.lighthouseapp.com/projects/13286-preferences
+
 Development
 
-* http://dev.pluginaweek.org/browser/trunk/preferences
+* http://github.com/pluginaweek/preferences
 
 Source
 
-* http://svn.pluginaweek.org/trunk/preferences
+* git://github.com/pluginaweek/preferences.git
 
 == Description
 
@@ -168,7 +168,7 @@ Preferences are stored in a separate table called "preferences".
 == Testing
 
 Before you can run any tests, the following gem must be installed:
-* plugin_test_helper[http://wiki.pluginaweek.org/Plugin_test_helper]
+* plugin_test_helper[http://github.com/pluginaweek/plugin_test_helper]
 
 To run against a specific version of Rails:
 
@@ -177,4 +177,4 @@ To run against a specific version of Rails:
 == Dependencies
 
 * Rails 2.1 or later
-* plugins_plus[http://wiki.pluginaweek.org/Plugins_plus]
+* plugins_plus[http://github.com/pluginaweek/plugins_plus]
