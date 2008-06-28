@@ -1,30 +1,28 @@
-*SVN*
+== master
 
-*0.1.2* (June 22nd, 2008)
+== 0.1.2 / 2008-06-22
 
 * Remove log files from gems
 
-*0.1.1* (June 20th, 2008)
+== 0.1.1 / 2008-06-20
 
 * Rename preference_values hash to preferences
-
 * Rename preferences association to stored_preferences
 
-*0.1.0* (June 19th, 2008)
+== 0.1.0 / 2008-06-19
 
 * Avoid string evaluation for dynamic methods
-
 * Return hashes for the preference_values, e.g.
-
-  user.preference_values              # => {'color' => 'red', 'number' => 11, 'website' => {'background' => 'white', 'foreground' => 'black'}}
-  user.preference_values('website')  # => {'background' => 'white', 'foreground' => 'black'}
+  
+  user.preference_values            # => {'color' => 'red', 'number' => 11, 'website' => {'background' => 'white', 'foreground' => 'black'}}
+  user.preference_values('website') # => {'background' => 'white', 'foreground' => 'black'}
 
 * Add more generic grouping of preferences than with just other records, e.g.
-
+  
   user.preferred_color('cars')
 
 * Remove support for an options hash when specifying :for associations for preference
 
-*0.0.1* (May 10th, 2008)
+== 0.0.1 / 2008-05-10
 
 * Initial public release
