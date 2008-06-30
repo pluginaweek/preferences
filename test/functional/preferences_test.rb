@@ -209,6 +209,18 @@ class UserWithStoredPreferencesTest < Test::Unit::TestCase
     assert_equal expected, @user.preferences
   end
   
+  def test_should_use_preferences_for_prefs
+    expected = {
+      'hot_salsa' => nil,
+      'dark_chocolate' => true,
+      'color' => nil,
+      'car' => nil,
+      'language' => 'Latin'
+    }
+    
+    assert_equal expected, @user.prefs
+  end
+  
   def test_should_not_remove_preference_if_set_to_default
     @user.preferred_language = 'English'
     @user.save!
@@ -260,7 +272,7 @@ class UserWithStoredPreferencesForBasicGroupsTest < Test::Unit::TestCase
     assert_equal 1, @user.stored_preferences.size
   end
   
-  def test_should_have_preferences_for_group
+  def test_should_include_group_in_preferences
     expected = {
       'hot_salsa' => nil,
       'dark_chocolate' => true,
@@ -277,6 +289,30 @@ class UserWithStoredPreferencesForBasicGroupsTest < Test::Unit::TestCase
     }
     
     assert_equal expected, @user.preferences
+  end
+  
+  def test_should_be_able_to_show_all_preferences_just_for_the_owner
+    expected = {
+      'hot_salsa' => nil,
+      'dark_chocolate' => true,
+      'color' => nil,
+      'car' => nil,
+      'language' => 'English'
+    }
+    
+    assert_equal expected, @user.preferences(nil)
+  end
+  
+  def test_should_be_able_to_show_all_preferences_for_a_single_group
+    expected = {
+      'hot_salsa' => nil,
+      'dark_chocolate' => true,
+      'color' => 'red',
+      'car' => nil,
+      'language' => 'English'
+    }
+    
+    assert_equal expected, @user.preferences('cars')
   end
   
   def test_should_not_have_preference_without_group

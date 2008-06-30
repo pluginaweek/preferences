@@ -119,6 +119,10 @@ This hash will contain the value for every preference that has been defined for
 the model, whether that's the default value or one that has been previously
 stored.
 
+A short-hand alternative for preferences is also available:
+
+  user.prefs  # => {"language"=>"English", "color"=>nil}
+
 === Grouping preferences
 
 In addition to defining generic preferences for the owning record, you can also

@@ -140,6 +140,12 @@ module PluginAWeek #:nodoc:
     end
     
     module InstanceMethods
+      def self.included(base) #:nodoc:
+        base.class_eval do
+          alias_method :prefs, :preferences
+        end
+      end
+      
       # Finds all preferences, including defaults, for the current record.  If
       # any custom group preferences have been stored, then this will include
       # all default preferences within that particular group.
@@ -164,27 +170,28 @@ module PluginAWeek #:nodoc:
       #   user.preferences('cars')
       #   => {"language"=>"English", "color"=>"red"}
       def preferences(*args)
-        if args.any?
+        if args.empty?
+          group = nil
+          conditions = {}
+        else
           group = args.first
           group_id, group_type = Preference.split_group(group)
           conditions = {:group_id => group_id, :group_type => group_type}
-        else
-          conditions = {}
         end
         
         # Find all of the stored preferences
         stored_preferences = self.stored_preferences.find(:all, :conditions => conditions)
         
         # Hashify attribute -> value or group -> attribute -> value
-        stored_preferences.inject(self.class.default_preferences.dup) do |preferences, preference|
-          if group = preference.group
-            preference_group = preferences[group] ||= self.class.default_preferences.dup
+        stored_preferences.inject(self.class.default_preferences.dup) do |all_preferences, preference|
+          if !group && (preference_group = preference.group)
+            preferences = all_preferences[preference_group] ||= self.class.default_preferences.dup
           else
-            preference_group = preferences
+            preferences = all_preferences
           end
           
-          preference_group[preference.attribute] = preference.value
-          preferences
+          preferences[preference.attribute] = preference.value
+          all_preferences
         end
       end
       

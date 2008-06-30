@@ -1,5 +1,11 @@
 == master
 
+== 0.1.3
+
+* Add +prefs+ as an alias for +preferences+
+* Fix +preferences+ not properly selecting preferences when a group is specified
+* Improve test coverage
+
 == 0.1.2 / 2008-06-22
 
 * Remove log files from gems
