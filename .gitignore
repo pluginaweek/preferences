@@ -1,3 +1,4 @@
-pkg/
-rdoc/
-test/app_root/log/
+coverage
+pkg
+rdoc
+test/app_root/log
