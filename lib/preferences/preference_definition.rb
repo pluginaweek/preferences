@@ -1,5 +1,4 @@
 module PluginAWeek #:nodoc:
-  # Adds support for defining preferences on ActiveRecord models.
   module Preferences
     # Represents the definition of a preference for a particular model
     class PreferenceDefinition
@@ -24,7 +23,8 @@ module PluginAWeek #:nodoc:
         @column.default
       end
       
-      # Typecasts the value based on the type of preference that was defined
+      # Typecasts the value based on the type of preference that was defined.
+      # This uses ActiveRecord's typecast functionality.
       def type_cast(value)
         if @type == 'any'
           value
