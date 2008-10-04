@@ -21,12 +21,6 @@ module PluginAWeek #:nodoc:
   #   u.attributes = {:prefers_notifications => true}
   #   u.save!
   module Preferences
-    def self.included(base) #:nodoc:
-      base.class_eval do
-        extend PluginAWeek::Preferences::MacroMethods
-      end
-    end
-    
     module MacroMethods
       # Defines a new preference for all records in the model.  By default, preferences
       # are assumed to have a boolean data type, so all values will be typecasted
@@ -286,5 +280,5 @@ module PluginAWeek #:nodoc:
 end
 
 ActiveRecord::Base.class_eval do
-  include PluginAWeek::Preferences
+  extend PluginAWeek::Preferences::MacroMethods
 end

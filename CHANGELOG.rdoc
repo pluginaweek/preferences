@@ -1,5 +1,7 @@
 == master
 
+* Change how the base module is included to prevent namespacing conflicts
+
 == 0.1.3 / 2008-06-29
 
 * Add +prefs+ as an alias for +preferences+
