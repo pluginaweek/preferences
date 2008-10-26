@@ -80,6 +80,26 @@ class PreferenceTest < Test::Unit::TestCase
     assert !preference.valid?
     assert_equal 1, Array(preference.errors.on(:group_type)).size
   end
+  
+  def test_should_protect_attributes_from_mass_assignment
+    preference = Preference.new(
+      :id => 1,
+      :attribute => 'notifications',
+      :value => '123',
+      :owner_id => 1,
+      :owner_type => 'User',
+      :group_id => 1,
+      :group_type => 'Car'
+    )
+    
+    assert_nil preference.id
+    assert_equal 'notifications', preference.attribute
+    assert_equal '123', preference.value
+    assert_equal 1, preference.owner_id
+    assert_equal 'User', preference.owner_type
+    assert_equal 1, preference.group_id
+    assert_equal 'Car', preference.group_type
+  end
 end
 
 class PreferenceAsAClassTest < Test::Unit::TestCase
