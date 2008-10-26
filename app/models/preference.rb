@@ -37,7 +37,7 @@ class Preference < ActiveRecord::Base
         group_id, group_type = nil, group
       end
       
-      return group_id, group_type
+      [group_id, group_type]
     end
   end
   
