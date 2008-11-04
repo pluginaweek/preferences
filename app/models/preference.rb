@@ -43,7 +43,10 @@ class Preference < ActiveRecord::Base
   
   # The definition for the attribute
   def definition
-    owner_type.constantize.preference_definitions[attribute] if owner_type
+    # Optimize number of queries to the database by only looking up the actual
+    # owner record for STI cases when the definition can't be found in the
+    # stored owner type class
+    owner_type && (find_definition(owner_type.constantize) || find_definition(owner.class))
   end
   
   # Typecasts the value depending on the preference definition's declared type
@@ -58,4 +61,11 @@ class Preference < ActiveRecord::Base
     group_id ? group_without_optional_lookup : group_type
   end
   alias_method_chain :group, :optional_lookup
+  
+  private
+    # Finds the definition for this preference's attribute in the given owner
+    # class.
+    def find_definition(owner_class)
+      owner_class.respond_to?(:preference_definitions) && owner_class.preference_definitions[attribute]
+    end
 end

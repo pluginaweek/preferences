@@ -1,5 +1,7 @@
 == master
 
+* Fix preferences defined in STI subclasses not working [Quinn Shanahan]
+
 == 0.1.4 / 2008-10-26
 
 * Change how the base module is included to prevent namespacing conflicts

@@ -39,6 +39,16 @@ module Factory
     )
   end
   
+  build Employee do |attributes|
+    attributes.reverse_merge!(
+      :name => 'John Smith'
+    )
+  end
+  
+  build Manager do |attributes|
+    valid_employee_attributes(attributes)
+  end
+  
   build Preference do |attributes|
     attributes[:owner] = create_user unless attributes.include?(:owner)
     attributes.reverse_merge!(

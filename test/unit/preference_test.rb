@@ -209,3 +209,26 @@ class PreferenceWithBooleanAttributeTest < Test::Unit::TestCase
     User.default_preferences.delete('notifications')
   end
 end
+
+class PreferenceWithSTIOwnerTest < Test::Unit::TestCase
+  def setup
+    @manager = create_manager
+    @preference = create_preference(:owner => @manager, :attribute => 'health_insurance', :value => true)
+  end
+  
+  def test_should_have_an_owner
+    assert_equal @manager, @preference.owner
+  end
+  
+  def test_should_have_an_owner_type
+    assert_equal 'Employee', @preference.owner_type
+  end
+  
+  def test_should_have_a_definition
+    assert_not_nil @preference.definition
+  end
+  
+  def test_should_have_a_value
+    assert_equal true, @preference.value
+  end
+end
