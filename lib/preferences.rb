@@ -23,7 +23,7 @@ module PluginAWeek #:nodoc:
   # 
   # == Validations
   # 
-  # Since the generatod accessors for a preference allow the preference to be
+  # Since the generated accessors for a preference allow the preference to be
   # treated just like regular ActiveRecord column attributes, they can also be
   # validated against in the same way.  For example,
   # 
