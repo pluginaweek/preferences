@@ -35,15 +35,15 @@ module PluginAWeek #:nodoc:
   #   end
   #   
   #   u = User.new
-  #   u.valid?              # => false
-  #   u.errors.on(:color)   # => "can't be blank"
+  #   u.valid?                        # => false
+  #   u.errors.on(:preferred_color)   # => "can't be blank"
   #   
   #   u.preferred_color = 'white'
-  #   u.valid?              # => false
-  #   u.errors.on(:color)   # => "is not included in the list"
+  #   u.valid?                        # => false
+  #   u.errors.on(:preferred_color)   # => "is not included in the list"
   #   
   #   u.preferred_color = 'red'
-  #   u.valid?              # => true
+  #   u.valid?                        # => true
   module Preferences
     module MacroMethods
       # Defines a new preference for all records in the model.  By default,
