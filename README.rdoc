@@ -31,12 +31,12 @@ Generally, basic preferences can be accomplished through simple designs, such as
 additional columns or a bit vector described and implemented by preference_fu[http://agilewebdevelopment.com/plugins/preferencefu].
 However, as you find the need for non-binary preferences and the number of
 preferences becomes unmanageable as individual columns in the database, the next
-step is often to create a separate "preferences" table.  This is where the +preferences+
-plugin comes in.
+step is often to create a separate "preferences" table.  This is where the
++preferences+ plugin comes in.
 
-+preferences+ encapsulates this design by hiding the fact that preferences are
-stored in a separate table and making it dead-simple to define and manage
-preferences.
++preferences+ encapsulates this design by exposing preferences using simple
+attribute accessors on the model, hiding the fact that preferences are stored in
+a separate table and making it dead-simple to define and manage preferences.
 
 == Usage
 
@@ -60,26 +60,28 @@ In the above model, 5 preferences have been defined:
 * language
 
 For each preference, a data type and default value can be specified.  If no
-data type is given, it's considered a boolean value.  If no default value is
+data type is given, it's assumed to be a boolean value.  If no default value is
 given, the default is assumed to be nil.
 
 === Accessing preferences
 
-Once preferences have been defined for a model, they can be accessed either using
-the shortcut methods that are generated for each preference or the generic methods
-that are not specific to a particular preference.
+Once preferences have been defined for a model, they can be accessed either
+using the accessor methods that are generated for each preference or the generic
+methods that are not specific to a particular preference.
 
-==== Shortcut methods
+==== Accessors
 
-There are several shortcut methods that are generated.  They are shown below.
+There are several shortcut methods that are generated for each preference
+defined on a model.  These reflect the same set of methods (attribute accessors)
+that are generated for a model's columns.  Examples of these are shown below:
 
 Query methods:
   user.prefers_hot_salsa?         # => false
-  user.prefers_dark_chocolate?    # => false
+  user.preferred_language?        # => true
 
 Reader methods:
-  user.preferred_color      # => nil
-  user.preferred_language   # => "English"
+  user.prefers_hot_salsa          # => false
+  user.preferred_language         # => "English"
 
 Writer methods:
   user.prefers_hot_salsa = false        # => false
@@ -87,16 +89,16 @@ Writer methods:
 
 ==== Generic methods
 
-Each shortcut method is essentially a wrapper for the various generic methods
+Each preference accessor is essentially a wrapper for the various generic methods
 shown below:
 
 Query method:
-  user.prefers?(:hot_salsa)       # => false
-  user.prefers?(:dark_chocolate)  # => false
+  user.prefers?(:hot_salsa)     # => false
+  user.preferred?(:language)    # => true
 
 Reader method:
-  user.preferred(:color)      # => nil
-  user.preferred(:language)   # => "English"
+  user.prefers(:hot_salsa)      # => false
+  user.preferred(:language)     # => "English"
 
 Write method:
   user.set_preference(:hot_salsa, false)      # => false
@@ -135,7 +137,7 @@ through an example:
   user.preferred_color = 'red', car
   # user.set_preference(:color, 'red', car) # The generic way
 
-This will create a preference for the color "red" for the given car.  In this way,
+This will create a color preference of "red" for the given car.  In this way,
 you can have "color" preferences for different records.
 
 To access the preference for a particular record, you can use the same accessor
@@ -160,11 +162,11 @@ preferences by name.  For example,
 
 === Saving preferences
 
-Note that preferences are not saved until the owning record is saved.  Preferences
-are treated in a similar fashion to attributes.  For example,
+Note that preferences are not saved until the owning record is saved.
+Preferences are treated in a similar fashion to attributes.  For example,
 
   user = user.find(:first)
-  user.attributes = {:preferred_color => 'red'}
+  user.attributes = {:prefers_hot_salsa => false, :preferred_color => 'red'}
   user.save!
 
 Preferences are stored in a separate table called "preferences".

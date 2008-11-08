@@ -20,11 +20,35 @@ module PluginAWeek #:nodoc:
   #   u = User.find_by_login('admin')
   #   u.attributes = {:prefers_notifications => true}
   #   u.save!
+  # 
+  # == Validations
+  # 
+  # Since the generatod accessors for a preference allow the preference to be
+  # treated just like regular ActiveRecord column attributes, they can also be
+  # validated against in the same way.  For example,
+  # 
+  #   class User < ActiveRecord::Base
+  #     preference :color, :string
+  #     
+  #     validates_presence_of :preferred_color
+  #     validates_inclusion_of :preferred_color, :in => %w(red green blue)
+  #   end
+  #   
+  #   u = User.new
+  #   u.valid?              # => false
+  #   u.errors.on(:color)   # => "can't be blank"
+  #   
+  #   u.preferred_color = 'white'
+  #   u.valid?              # => false
+  #   u.errors.on(:color)   # => "is not included in the list"
+  #   
+  #   u.preferred_color = 'red'
+  #   u.valid?              # => true
   module Preferences
     module MacroMethods
-      # Defines a new preference for all records in the model.  By default, preferences
-      # are assumed to have a boolean data type, so all values will be typecasted
-      # to true/false based on ActiveRecord rules.
+      # Defines a new preference for all records in the model.  By default,
+      # preferences are assumed to have a boolean data type, so all values will
+      # be typecasted to true/false based on ActiveRecord rules.
       # 
       # Configuration options:
       # * +default+ - The default value for the preference. Default is nil.
@@ -47,34 +71,37 @@ module PluginAWeek #:nodoc:
       # 
       # After the first preference is defined, the following associations are
       # created for the model:
-      # * +stored_preferences+ - A collection of all the custom preferences specified for a record
+      # * +stored_preferences+ - A collection of all the custom preferences specified for a record.  This will not include default preferences unless they have been explicitly set.
       # 
-      # == Generated shortcut methods
+      # == Generated accessors
       # 
       # In addition to calling <tt>prefers?</tt> and +preferred+ on a record, you
-      # can also use the shortcut methods that are generated when a preference is
-      # defined.  For example,
+      # can also use the shortcut accessor methods that are generated when a
+      # preference is defined.  For example,
       # 
       #   class User < ActiveRecord::Base
       #     preference :notifications
       #   end
       # 
       # ...generates the following methods:
-      # * <tt>prefers_notifications?</tt> - The same as calling <tt>record.prefers?(:notifications)</tt>
-      # * <tt>prefers_notifications=(value)</tt> - The same as calling <tt>record.set_preference(:notifications, value)</tt>
-      # * <tt>preferred_notifications</tt> - The same as called <tt>record.preferred(:notifications)</tt>
-      # * <tt>preferred_notifications=(value)</tt> - The same as calling <tt>record.set_preference(:notifications, value)</tt>
+      # * <tt>prefers_notifications?</tt> - Whether a value has been specified, i.e. <tt>record.prefers?(:notifications)</tt>
+      # * <tt>prefers_notifications</tt> - The actual value stored, i.e. <tt>record.prefers(:notifications)</tt>
+      # * <tt>prefers_notifications=(value)</tt> - Sets a new value, i.e. <tt>record.set_preference(:notifications, value)</tt>
+      # * <tt>preferred_notifications?</tt> - Whether a value has been specified, i.e. <tt>record.preferred?(:notifications)</tt>
+      # * <tt>preferred_notifications</tt> - The actual value stored, i.e. <tt>record.preferred(:notifications)</tt>
+      # * <tt>preferred_notifications=(value)</tt> - Sets a new value, i.e. <tt>record.set_preference(:notifications, value)</tt>
       # 
       # Notice that there are two tenses used depending on the context of the
       # preference.  Conventionally, <tt>prefers_notifications?</tt> is better
-      # for boolean preferences, while +preferred_color+ is better for non-boolean
-      # preferences.
+      # for accessing boolean preferences, while +preferred_color+ is better for
+      # accessing non-boolean preferences.
       # 
       # Example:
       # 
       #   user = User.find(:first)
       #   user.prefers_notifications?         # => false
-      #   user.prefers_color?                 # => true
+      #   user.prefers_notifications          # => false
+      #   user.preferred_color?               # => true
       #   user.preferred_color                # => 'red'
       #   user.preferred_color = 'blue'       # => 'blue'
       #   
@@ -83,7 +110,7 @@ module PluginAWeek #:nodoc:
       #   car = Car.find(:first)
       #   user.preferred_color = 'red', car   # => 'red'
       #   user.preferred_color(car)           # => 'red'
-      #   user.prefers_color?(car)            # => true
+      #   user.preferred_color?(car)          # => true
       #   
       #   user.save!  # => true
       def preference(attribute, *args)
@@ -109,25 +136,27 @@ module PluginAWeek #:nodoc:
         self.preference_definitions[attribute] = definition
         self.default_preferences[attribute] = definition.default_value
         
-        # Create short-hand helper methods, making sure that the attribute
+        # Create short-hand accessor methods, making sure that the attribute
         # is method-safe in terms of what characters are allowed
         attribute = attribute.gsub(/[^A-Za-z0-9_-]/, '').underscore
         
         # Query lookup
-        define_method("prefers_#{attribute}?") do |*group|
-          prefers?(attribute, group.first)
+        define_method("preferred_#{attribute}?") do |*group|
+          preferred?(attribute, group.first)
         end
-        
-        # Writer
-        define_method("prefers_#{attribute}=") do |*args|
-          set_preference(*([attribute] + [args].flatten))
-        end
-        alias_method "preferred_#{attribute}=", "prefers_#{attribute}="
+        alias_method "prefers_#{attribute}?", "preferred_#{attribute}?"
         
         # Reader
         define_method("preferred_#{attribute}") do |*group|
           preferred(attribute, group.first)
         end
+        alias_method "prefers_#{attribute}", "preferred_#{attribute}"
+        
+        # Writer
+        define_method("preferred_#{attribute}=") do |*args|
+          set_preference(*([attribute] + [args].flatten))
+        end
+        alias_method "prefers_#{attribute}=", "preferred_#{attribute}="
         
         definition
       end
@@ -156,7 +185,7 @@ module PluginAWeek #:nodoc:
       #   user.preferences
       #   => {"language"=>"English", "color"=>nil, "cars"=>{"language=>"English", "color"=>"red"}}
       #   
-      # Getting preference values for the owning record:
+      # Getting preference values *just* for the owning record (i.e. excluding groups):
       #   user.preferences(nil)
       #   => {"language"=>"English", "color"=>nil}
       #   
@@ -169,6 +198,9 @@ module PluginAWeek #:nodoc:
           conditions = {}
         else
           group = args.first
+          
+          # Split the actual group into its different parts (id/type) in case
+          # a record is passed in
           group_id, group_type = Preference.split_group(group)
           conditions = {:group_id => group_id, :group_type => group_type}
         end
@@ -189,61 +221,81 @@ module PluginAWeek #:nodoc:
         end
       end
       
-      # Queries whether or not a value has been specified for the given attribute.
-      # This is dependent on how the value is type-casted.
+      # Queries whether or not a value is present for the given attribute.  This
+      # is dependent on how the value is type-casted.
       # 
       # == Examples
       # 
-      #   user = User.find(:first)
-      #   user.prefers?(:notifications)             # => true
+      #   class User < ActiveRecord::Base
+      #     preference :color, :string, :default => 'red'
+      #   end
       #   
-      #   user.prefers(:notifications, 'error')     # => true
+      #   user = User.create
+      #   user.preferred(:color)              # => "red"
+      #   user.preferred?(:color)             # => true
+      #   user.preferred?(:color, 'cars')     # => true
+      #   user.preferred?(:color, Car.first)  # => true
       #   
-      #   newsgroup = Newsgroup.find(:first)
-      #   user.prefers?(:notifications, newsgroup)  # => false
-      def prefers?(attribute, group = nil)
+      #   user.set_preference(:color, nil)
+      #   user.preferred(:color)              # => nil
+      #   user.preferred?(:color)             # => false
+      def preferred?(attribute, group = nil)
         attribute = attribute.to_s
         
         value = preferred(attribute, group)
         preference_definitions[attribute].query(value)
       end
+      alias_method :prefers?, :preferred?
       
-      # Gets the preferred value for the given attribute.
+      # Gets the actual value stored for the given attribute, or the default
+      # value if nothing is present.
       # 
       # == Examples
       # 
-      #   user = User.find(:first)
-      #   user.preferred(:color)          # => 'red'
+      #   class User < ActiveRecord::Base
+      #     preference :color, :string, :default => 'red'
+      #   end
       #   
-      #   user.preferred(:color, 'cars')  # => 'blue'
+      #   user = User.create
+      #   user.preferred(:color)            # => "red"
+      #   user.preferred(:color, 'cars')    # => "red"
+      #   user.preferred(:color, Car.first) # => "red"
       #   
-      #   car = Car.find(:first)
-      #   user.preferred(:color, car)     # => 'black'
+      #   user.set_preference(:color, 'blue')
+      #   user.preferred(:color)            # => "blue"
       def preferred(attribute, group = nil)
         attribute = attribute.to_s
         
         if @preference_values && @preference_values[attribute] && @preference_values[attribute].include?(group)
+          # Value for this attribute/group has been written, but not saved yet:
+          # grab from the pending values
           value = @preference_values[attribute][group]
         else
+          # Split the group being filtered
           group_id, group_type = Preference.split_group(group)
+          
+          # Grab the first preference; if it doesn't exist, use the default value
           preference = stored_preferences.find(:first, :conditions => {:attribute => attribute, :group_id => group_id, :group_type => group_type})
           value = preference ? preference.value : preference_definitions[attribute].default_value
         end
         
         value
       end
+      alias_method :prefers, :preferred
       
       # Sets a new value for the given attribute.  The actual Preference record
-      # is *not* created until the actual record is saved.
+      # is *not* created until this record is saved.  In this way, preferences
+      # act *exactly* the same attributes.  They can be written to and validated
+      # against, but won't actually be written to the database until the record
+      # is saved.
       # 
       # == Examples
       # 
       #   user = User.find(:first)
-      #   user.set_preference(:notifications, false) # => false
+      #   user.set_preference(:color, 'red')              # => "red"
       #   user.save!
       #   
-      #   newsgroup = Newsgroup.find(:first)
-      #   user.set_preference(:notifications, true, newsgroup)  # => true
+      #   user.set_preference(:color, 'blue', Car.first)  # => "blue"
       #   user.save!
       def set_preference(attribute, value, group = nil)
         attribute = attribute.to_s

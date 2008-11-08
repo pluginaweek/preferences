@@ -12,20 +12,28 @@ class PreferencesTest < Test::Unit::TestCase
     assert_raise(ArgumentError) {User.preference :notifications, :boolean, :invalid => true}
   end
   
-  def test_should_create_prefers_query_method
-    assert @user.respond_to?(:prefers_notifications?)
+  def test_should_create_preferred_query_method
+    assert @user.respond_to?(:preferred_notifications?)
   end
   
-  def test_should_create_prefers_writer
-    assert @user.respond_to?(:prefers_notifications=)
+  def test_should_create_prefers_query_method
+    assert @user.respond_to?(:prefers_notifications?)
   end
   
   def test_should_create_preferred_reader
     assert @user.respond_to?(:preferred_notifications)
   end
   
+  def test_should_create_prefers_reader
+    assert @user.respond_to?(:prefers_notifications)
+  end
+  
   def test_should_create_preferred_writer
     assert @user.respond_to?(:preferred_notifications=)
+  end
+  
+  def test_should_create_prefers_writer
+    assert @user.respond_to?(:prefers_notifications=)
   end
   
   def test_should_create_preference_definitions
@@ -53,10 +61,12 @@ class UserByDefaultTest < Test::Unit::TestCase
   
   def test_should_not_prefer_hot_salsa
     assert_nil @user.preferred_hot_salsa
+    assert_nil @user.prefers_hot_salsa
   end
   
   def test_should_prefer_dark_chocolate
     assert_equal true, @user.preferred_dark_chocolate
+    assert_equal true, @user.prefers_dark_chocolate
   end
   
   def test_should_not_have_a_preferred_color
@@ -120,6 +130,11 @@ class UserTest < Test::Unit::TestCase
     assert_equal 'Latin', @user.preferred_language
   end
   
+  def test_should_be_able_to_use_generic_preferred_query_method
+    @user.prefers_hot_salsa = true
+    assert @user.preferred?(:hot_salsa)
+  end
+  
   def test_should_be_able_to_use_generic_prefers_query_method
     @user.prefers_hot_salsa = true
     assert @user.prefers?(:hot_salsa)
@@ -128,6 +143,11 @@ class UserTest < Test::Unit::TestCase
   def test_should_be_able_to_use_generic_preferred_method
     @user.preferred_color = 'blue'
     assert_equal 'blue', @user.preferred(:color)
+  end
+  
+  def test_should_be_able_to_use_generic_prefers_method
+    @user.preferred_color = 'blue'
+    assert_equal 'blue', @user.prefers(:color)
   end
   
   def test_should_be_able_to_use_generic_set_preference_method

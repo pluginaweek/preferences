@@ -24,25 +24,20 @@ module PluginAWeek #:nodoc:
       end
       
       # Typecasts the value based on the type of preference that was defined.
-      # This uses ActiveRecord's typecast functionality.
+      # This uses ActiveRecord's typecast functionality so the same rules for
+      # typecasting a model's columns apply here.
       def type_cast(value)
-        if @type == 'any'
-          value
-        else
-          @column.type_cast(value)
-        end
+        @type == 'any' ? value : @column.type_cast(value)
       end
       
       # Typecasts the value to true/false depending on the type of preference
       def query(value)
-        unless value = type_cast(value)
+        if !(value = type_cast(value))
           false
+        elsif @column.number?
+          !value.zero?
         else
-          if @column.number?
-            !value.zero?
-          else
-            !value.blank?
-          end
+          !value.blank?
         end
       end
     end
