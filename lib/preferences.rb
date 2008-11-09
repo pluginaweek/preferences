@@ -285,9 +285,9 @@ module PluginAWeek #:nodoc:
       
       # Sets a new value for the given attribute.  The actual Preference record
       # is *not* created until this record is saved.  In this way, preferences
-      # act *exactly* the same attributes.  They can be written to and validated
-      # against, but won't actually be written to the database until the record
-      # is saved.
+      # act *exactly* the same as attributes.  They can be written to and
+      # validated against, but won't actually be written to the database until
+      # the record is saved.
       # 
       # == Examples
       # 
