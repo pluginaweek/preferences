@@ -1,5 +1,7 @@
 == master
 
+== 0.1.5 / 2008-11-16
+
 * Add all prefers/preferred accessors for preferences to be analogous to ActiveRecord column accessors
 * Fix preferences defined in STI subclasses not working [Quinn Shanahan]
 
