@@ -95,8 +95,8 @@ class PreferenceDefinitionWithBooleanTypeTest < Test::Unit::TestCase
     assert_equal true, @definition.type_cast('true')
   end
   
-  def test_should_type_cast_to_false_if_value_is_not_true_string
-    assert_equal false, @definition.type_cast('')
+  def test_should_type_cast_to_nil_if_value_is_not_true_string
+    assert_nil @definition.type_cast('')
   end
   
   def test_should_query_false_if_value_is_nil

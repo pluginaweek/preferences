@@ -43,19 +43,19 @@ class PreferenceTest < Test::Unit::TestCase
   def test_should_require_an_attribute
     preference = new_preference(:attribute => nil)
     assert !preference.valid?
-    assert_equal 1, Array(preference.errors.on(:attribute)).size
+    assert preference.errors.invalid?(:attribute)
   end
   
   def test_should_require_an_owner_id
     preference = new_preference(:owner => nil)
     assert !preference.valid?
-    assert_equal 1, Array(preference.errors.on(:owner_id)).size
+    assert preference.errors.invalid?(:owner_id)
   end
   
   def test_should_require_an_owner_type
     preference = new_preference(:owner => nil)
     assert !preference.valid?
-    assert_equal 1, Array(preference.errors.on(:owner_type)).size
+    assert preference.errors.invalid?(:owner_type)
   end
   
   def test_should_not_require_a_group_id
@@ -78,7 +78,7 @@ class PreferenceTest < Test::Unit::TestCase
     preference = new_preference(:group => nil)
     preference.group_id = 1
     assert !preference.valid?
-    assert_equal 1, Array(preference.errors.on(:group_type)).size
+    assert preference.errors.invalid?(:group_type)
   end
   
   def test_should_protect_attributes_from_mass_assignment
