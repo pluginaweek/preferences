@@ -1,5 +1,7 @@
 == master
 
+== 0.2.0 / 2008-12-14
+
 * Remove the PluginAWeek namespace
 
 == 0.1.5 / 2008-11-16
