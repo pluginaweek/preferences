@@ -2,7 +2,7 @@ require "#{File.dirname(__FILE__)}/../test_helper"
 
 class PreferenceDefinitionByDefaultTest < Test::Unit::TestCase
   def setup
-    @definition = PluginAWeek::Preferences::PreferenceDefinition.new(:notifications)
+    @definition = Preferences::PreferenceDefinition.new(:notifications)
   end
   
   def test_should_have_an_attribute
@@ -24,13 +24,13 @@ end
 
 class PreferenceDefinitionTest < Test::Unit::TestCase
   def test_should_raise_exception_if_invalid_option_specified
-    assert_raise(ArgumentError) {PluginAWeek::Preferences::PreferenceDefinition.new(:notifications, :invalid => true)}
+    assert_raise(ArgumentError) {Preferences::PreferenceDefinition.new(:notifications, :invalid => true)}
   end
 end
 
 class PreferenceDefinitionWithDefaultValueTest < Test::Unit::TestCase
   def setup
-    @definition = PluginAWeek::Preferences::PreferenceDefinition.new(:notifications, :boolean, :default => 1)
+    @definition = Preferences::PreferenceDefinition.new(:notifications, :boolean, :default => 1)
   end
   
   def test_should_type_cast_default_values
@@ -40,7 +40,7 @@ end
 
 class PreferenceDefinitionWithAnyTypeTest < Test::Unit::TestCase
   def setup
-    @definition = PluginAWeek::Preferences::PreferenceDefinition.new(:notifications, :any)
+    @definition = Preferences::PreferenceDefinition.new(:notifications, :any)
   end
   
   def test_should_not_type_cast
@@ -76,7 +76,7 @@ end
 
 class PreferenceDefinitionWithBooleanTypeTest < Test::Unit::TestCase
   def setup
-    @definition = PluginAWeek::Preferences::PreferenceDefinition.new(:notifications)
+    @definition = Preferences::PreferenceDefinition.new(:notifications)
   end
   
   def test_should_not_type_cast_if_value_is_nil
@@ -122,7 +122,7 @@ end
 
 class PreferenceDefinitionWithNumericTypeTest < Test::Unit::TestCase
   def setup
-    @definition = PluginAWeek::Preferences::PreferenceDefinition.new(:notifications, :integer)
+    @definition = Preferences::PreferenceDefinition.new(:notifications, :integer)
   end
   
   def test_should_type_cast_true_to_integer
@@ -152,7 +152,7 @@ end
 
 class PreferenceDefinitionWithStringTypeTest < Test::Unit::TestCase
   def setup
-    @definition = PluginAWeek::Preferences::PreferenceDefinition.new(:notifications, :string)
+    @definition = Preferences::PreferenceDefinition.new(:notifications, :string)
   end
   
   def test_should_type_cast_integers_to_strings

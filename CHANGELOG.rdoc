@@ -1,5 +1,7 @@
 == master
 
+* Remove the PluginAWeek namespace
+
 == 0.1.5 / 2008-11-16
 
 * Add all prefers/preferred accessors for preferences to be analogous to ActiveRecord column accessors
