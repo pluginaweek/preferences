@@ -50,7 +50,7 @@ module Preferences
     # be typecasted to true/false based on ActiveRecord rules.
     # 
     # Configuration options:
-    # * +default+ - The default value for the preference. Default is nil.
+    # * <tt>:default</tt> - The default value for the preference. Default is nil.
     # 
     # == Examples
     # 
