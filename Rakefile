@@ -5,7 +5,7 @@ require 'rake/contrib/sshpublisher'
 
 spec = Gem::Specification.new do |s|
   s.name              = 'preferences'
-  s.version           = '0.2.0'
+  s.version           = '0.3.0'
   s.platform          = Gem::Platform::RUBY
   s.summary           = 'Adds support for easily creating custom preferences for models'
   

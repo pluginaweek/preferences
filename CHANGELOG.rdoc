@@ -1,5 +1,7 @@
 == master
 
+== 0.3.0 / 2009-04-13
+
 * Add dependency on Rails 2.3
 * Remove dependency on plugins_plus
 
