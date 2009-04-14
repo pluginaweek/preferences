@@ -70,7 +70,9 @@ module Preferences
     # 
     # After the first preference is defined, the following associations are
     # created for the model:
-    # * +stored_preferences+ - A collection of all the custom preferences specified for a record.  This will not include default preferences unless they have been explicitly set.
+    # * +stored_preferences+ - A collection of all the custom preferences
+    #   specified for a record.  This will not include default preferences
+    #   unless they have been explicitly set.
     # 
     # == Generated accessors
     # 
@@ -120,9 +122,7 @@ module Preferences
         class_inheritable_hash :default_preferences
         self.default_preferences = {}
         
-        has_many  :stored_preferences,
-                    :as => :owner,
-                    :class_name => 'Preference'
+        has_many :stored_preferences, :as => :owner, :class_name => 'Preference'
         
         after_save :update_preferences
         
@@ -175,20 +175,24 @@ module Preferences
     # == Examples
     # 
     # A user with no stored values:
+    # 
     #   user = User.find(:first)
     #   user.preferences
     #   => {"language"=>"English", "color"=>nil}
     #   
     # A user with stored values for a particular group:
+    # 
     #   user.preferred_color = 'red', 'cars'
     #   user.preferences
     #   => {"language"=>"English", "color"=>nil, "cars"=>{"language=>"English", "color"=>"red"}}
     #   
     # Getting preference values *just* for the owning record (i.e. excluding groups):
+    # 
     #   user.preferences(nil)
     #   => {"language"=>"English", "color"=>nil}
     #   
     # Getting preference values for a particular group:
+    # 
     #   user.preferences('cars')
     #   => {"language"=>"English", "color"=>"red"}
     def preferences(*args)
