@@ -1,6 +1,6 @@
 require "#{File.dirname(__FILE__)}/../test_helper"
 
-class PreferencesTest < Test::Unit::TestCase
+class PreferencesTest < ActiveSupport::TestCase
   def setup
     User.preference :notifications, :boolean
     
@@ -54,7 +54,7 @@ class PreferencesTest < Test::Unit::TestCase
   end
 end
 
-class UserByDefaultTest < Test::Unit::TestCase
+class UserByDefaultTest < ActiveSupport::TestCase
   def setup
     @user = User.new
   end
@@ -94,7 +94,7 @@ class UserByDefaultTest < Test::Unit::TestCase
   end
 end
 
-class UserTest < Test::Unit::TestCase
+class UserTest < ActiveSupport::TestCase
   def setup
     @user = new_user
   end
@@ -162,7 +162,7 @@ class UserTest < Test::Unit::TestCase
   end
 end
 
-class UserAfterBeingCreatedTest < Test::Unit::TestCase
+class UserAfterBeingCreatedTest < ActiveSupport::TestCase
   def setup
     @user = create_user
   end
@@ -172,7 +172,7 @@ class UserAfterBeingCreatedTest < Test::Unit::TestCase
   end
 end
 
-class UserWithoutStoredPreferencesTest < Test::Unit::TestCase
+class UserWithoutStoredPreferencesTest < ActiveSupport::TestCase
   def setup
     @user = create_user
   end
@@ -206,7 +206,7 @@ class UserWithoutStoredPreferencesTest < Test::Unit::TestCase
   end
 end
 
-class UserWithStoredPreferencesTest < Test::Unit::TestCase
+class UserWithStoredPreferencesTest < ActiveSupport::TestCase
   def setup
     @user = create_user
     @user.preferred_language = 'Latin'
@@ -281,7 +281,7 @@ class UserWithStoredPreferencesTest < Test::Unit::TestCase
   end
 end
 
-class UserWithStoredPreferencesForBasicGroupsTest < Test::Unit::TestCase
+class UserWithStoredPreferencesForBasicGroupsTest < ActiveSupport::TestCase
   def setup
     @user = create_user
     @user.preferred_color = 'red', 'cars'
@@ -363,7 +363,7 @@ class UserWithStoredPreferencesForBasicGroupsTest < Test::Unit::TestCase
   end
 end
 
-class UserWithStoredPreferencesForActiveRecordGroupsTest < Test::Unit::TestCase
+class UserWithStoredPreferencesForActiveRecordGroupsTest < ActiveSupport::TestCase
   def setup
     @car = create_car
     

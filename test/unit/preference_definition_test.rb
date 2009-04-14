@@ -1,6 +1,6 @@
 require "#{File.dirname(__FILE__)}/../test_helper"
 
-class PreferenceDefinitionByDefaultTest < Test::Unit::TestCase
+class PreferenceDefinitionByDefaultTest < ActiveSupport::TestCase
   def setup
     @definition = Preferences::PreferenceDefinition.new(:notifications)
   end
@@ -22,13 +22,13 @@ class PreferenceDefinitionByDefaultTest < Test::Unit::TestCase
   end
 end
 
-class PreferenceDefinitionTest < Test::Unit::TestCase
+class PreferenceDefinitionTest < ActiveSupport::TestCase
   def test_should_raise_exception_if_invalid_option_specified
     assert_raise(ArgumentError) {Preferences::PreferenceDefinition.new(:notifications, :invalid => true)}
   end
 end
 
-class PreferenceDefinitionWithDefaultValueTest < Test::Unit::TestCase
+class PreferenceDefinitionWithDefaultValueTest < ActiveSupport::TestCase
   def setup
     @definition = Preferences::PreferenceDefinition.new(:notifications, :boolean, :default => 1)
   end
@@ -38,7 +38,7 @@ class PreferenceDefinitionWithDefaultValueTest < Test::Unit::TestCase
   end
 end
 
-class PreferenceDefinitionWithAnyTypeTest < Test::Unit::TestCase
+class PreferenceDefinitionWithAnyTypeTest < ActiveSupport::TestCase
   def setup
     @definition = Preferences::PreferenceDefinition.new(:notifications, :any)
   end
@@ -74,7 +74,7 @@ class PreferenceDefinitionWithAnyTypeTest < Test::Unit::TestCase
   end
 end
 
-class PreferenceDefinitionWithBooleanTypeTest < Test::Unit::TestCase
+class PreferenceDefinitionWithBooleanTypeTest < ActiveSupport::TestCase
   def setup
     @definition = Preferences::PreferenceDefinition.new(:notifications)
   end
@@ -120,7 +120,7 @@ class PreferenceDefinitionWithBooleanTypeTest < Test::Unit::TestCase
   end
 end
 
-class PreferenceDefinitionWithNumericTypeTest < Test::Unit::TestCase
+class PreferenceDefinitionWithNumericTypeTest < ActiveSupport::TestCase
   def setup
     @definition = Preferences::PreferenceDefinition.new(:notifications, :integer)
   end
@@ -150,7 +150,7 @@ class PreferenceDefinitionWithNumericTypeTest < Test::Unit::TestCase
   end
 end
 
-class PreferenceDefinitionWithStringTypeTest < Test::Unit::TestCase
+class PreferenceDefinitionWithStringTypeTest < ActiveSupport::TestCase
   def setup
     @definition = Preferences::PreferenceDefinition.new(:notifications, :string)
   end

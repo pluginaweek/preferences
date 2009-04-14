@@ -1,6 +1,6 @@
 require "#{File.dirname(__FILE__)}/../test_helper"
 
-class PreferenceByDefaultTest < Test::Unit::TestCase
+class PreferenceByDefaultTest < ActiveSupport::TestCase
   def setup
     @preference = Preference.new
   end
@@ -34,7 +34,7 @@ class PreferenceByDefaultTest < Test::Unit::TestCase
   end
 end
 
-class PreferenceTest < Test::Unit::TestCase
+class PreferenceTest < ActiveSupport::TestCase
   def test_should_be_valid_with_a_set_of_valid_attributes
     preference = new_preference
     assert preference.valid?
@@ -102,7 +102,7 @@ class PreferenceTest < Test::Unit::TestCase
   end
 end
 
-class PreferenceAsAClassTest < Test::Unit::TestCase
+class PreferenceAsAClassTest < ActiveSupport::TestCase
   def test_should_be_able_to_split_nil_groups
     group_id, group_type = Preference.split_group(nil)
     assert_nil group_id
@@ -128,7 +128,7 @@ class PreferenceAsAClassTest < Test::Unit::TestCase
   end
 end
 
-class PreferenceAfterBeingCreatedTest < Test::Unit::TestCase
+class PreferenceAfterBeingCreatedTest < ActiveSupport::TestCase
   def setup
     User.preference :notifications, :boolean
     
@@ -157,7 +157,7 @@ class PreferenceAfterBeingCreatedTest < Test::Unit::TestCase
   end
 end
 
-class PreferenceWithBasicGroupTest < Test::Unit::TestCase
+class PreferenceWithBasicGroupTest < ActiveSupport::TestCase
   def setup
     @preference = create_preference(:group_type => 'car')
   end
@@ -167,7 +167,7 @@ class PreferenceWithBasicGroupTest < Test::Unit::TestCase
   end
 end
 
-class PreferenceWithActiveRecordGroupTest < Test::Unit::TestCase
+class PreferenceWithActiveRecordGroupTest < ActiveSupport::TestCase
   def setup
     @car = create_car
     @preference = create_preference(:group => @car)
@@ -178,7 +178,7 @@ class PreferenceWithActiveRecordGroupTest < Test::Unit::TestCase
   end
 end
 
-class PreferenceWithBooleanAttributeTest < Test::Unit::TestCase
+class PreferenceWithBooleanAttributeTest < ActiveSupport::TestCase
   def setup
     User.preference :notifications, :boolean
   end
@@ -210,7 +210,7 @@ class PreferenceWithBooleanAttributeTest < Test::Unit::TestCase
   end
 end
 
-class PreferenceWithSTIOwnerTest < Test::Unit::TestCase
+class PreferenceWithSTIOwnerTest < ActiveSupport::TestCase
   def setup
     @manager = create_manager
     @preference = create_preference(:owner => @manager, :attribute => 'health_insurance', :value => true)

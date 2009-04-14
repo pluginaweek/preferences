@@ -182,5 +182,4 @@ To run against a specific version of Rails:
 
 == Dependencies
 
-* Rails 2.1 or later
-* plugins_plus[http://github.com/pluginaweek/plugins_plugins] (optional if app files are copied to your project tree)
+* Rails 2.3 or later
