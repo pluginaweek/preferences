@@ -52,7 +52,7 @@ module Factory
   build Preference do |attributes|
     attributes[:owner] = create_user unless attributes.include?(:owner)
     attributes.reverse_merge!(
-      :attribute => 'notifications',
+      :name => 'notifications',
       :value => false
     )
   end

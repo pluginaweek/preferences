@@ -23,7 +23,7 @@ require 'preferences/preference_definition'
 # == Validations
 # 
 # Since the generated accessors for a preference allow the preference to be
-# treated just like regular ActiveRecord column attributes, they can also be
+# treated just like regular ActiveRecord attributes, they can also be
 # validated against in the same way.  For example,
 # 
 #   class User < ActiveRecord::Base
@@ -76,8 +76,8 @@ module Preferences
     # 
     # == Generated accessors
     # 
-    # In addition to calling <tt>prefers?</tt> and +preferred+ on a record, you
-    # can also use the shortcut accessor methods that are generated when a
+    # In addition to calling <tt>prefers?</tt> and +preferred+ on a record,
+    # you can also use the shortcut accessor methods that are generated when a
     # preference is defined.  For example,
     # 
     #   class User < ActiveRecord::Base
@@ -114,7 +114,7 @@ module Preferences
     #   user.preferred_color?(car)          # => true
     #   
     #   user.save!  # => true
-    def preference(attribute, *args)
+    def preference(name, *args)
       unless included_modules.include?(InstanceMethods)
         class_inheritable_hash :preference_definitions
         self.preference_definitions = {}
@@ -130,32 +130,32 @@ module Preferences
       end
       
       # Create the definition
-      attribute = attribute.to_s
-      definition = PreferenceDefinition.new(attribute, *args)
-      self.preference_definitions[attribute] = definition
-      self.default_preferences[attribute] = definition.default_value
+      name = name.to_s
+      definition = PreferenceDefinition.new(name, *args)
+      self.preference_definitions[name] = definition
+      self.default_preferences[name] = definition.default_value
       
-      # Create short-hand accessor methods, making sure that the attribute
+      # Create short-hand accessor methods, making sure that the name
       # is method-safe in terms of what characters are allowed
-      attribute = attribute.gsub(/[^A-Za-z0-9_-]/, '').underscore
+      name = name.gsub(/[^A-Za-z0-9_-]/, '').underscore
       
       # Query lookup
-      define_method("preferred_#{attribute}?") do |*group|
-        preferred?(attribute, group.first)
+      define_method("preferred_#{name}?") do |*group|
+        preferred?(name, group.first)
       end
-      alias_method "prefers_#{attribute}?", "preferred_#{attribute}?"
+      alias_method "prefers_#{name}?", "preferred_#{name}?"
       
       # Reader
-      define_method("preferred_#{attribute}") do |*group|
-        preferred(attribute, group.first)
+      define_method("preferred_#{name}") do |*group|
+        preferred(name, group.first)
       end
-      alias_method "prefers_#{attribute}", "preferred_#{attribute}"
+      alias_method "prefers_#{name}", "preferred_#{name}"
       
       # Writer
-      define_method("preferred_#{attribute}=") do |*args|
-        set_preference(*([attribute] + [args].flatten))
+      define_method("preferred_#{name}=") do |*args|
+        set_preference(*([name] + [args].flatten))
       end
-      alias_method "prefers_#{attribute}=", "preferred_#{attribute}="
+      alias_method "prefers_#{name}=", "preferred_#{name}="
       
       definition
     end
@@ -211,7 +211,7 @@ module Preferences
       # Find all of the stored preferences
       stored_preferences = self.stored_preferences.find(:all, :conditions => conditions)
       
-      # Hashify attribute -> value or group -> attribute -> value
+      # Hashify name -> value or group -> name -> value
       stored_preferences.inject(self.class.default_preferences.dup) do |all_preferences, preference|
         if !group && (preference_group = preference.group)
           preferences = all_preferences[preference_group] ||= self.class.default_preferences.dup
@@ -219,13 +219,13 @@ module Preferences
           preferences = all_preferences
         end
         
-        preferences[preference.attribute] = preference.value
+        preferences[preference.name] = preference.value
         all_preferences
       end
     end
     
-    # Queries whether or not a value is present for the given attribute.  This
-    # is dependent on how the value is type-casted.
+    # Queries whether or not a value is present for the given preference.
+    # This is dependent on how the value is type-casted.
     # 
     # == Examples
     # 
@@ -242,15 +242,15 @@ module Preferences
     #   user.set_preference(:color, nil)
     #   user.preferred(:color)              # => nil
     #   user.preferred?(:color)             # => false
-    def preferred?(attribute, group = nil)
-      attribute = attribute.to_s
+    def preferred?(name, group = nil)
+      name = name.to_s
       
-      value = preferred(attribute, group)
-      preference_definitions[attribute].query(value)
+      value = preferred(name, group)
+      preference_definitions[name].query(value)
     end
     alias_method :prefers?, :preferred?
     
-    # Gets the actual value stored for the given attribute, or the default
+    # Gets the actual value stored for the given preference, or the default
     # value if nothing is present.
     # 
     # == Examples
@@ -266,27 +266,27 @@ module Preferences
     #   
     #   user.set_preference(:color, 'blue')
     #   user.preferred(:color)            # => "blue"
-    def preferred(attribute, group = nil)
-      attribute = attribute.to_s
+    def preferred(name, group = nil)
+      name = name.to_s
       
-      if @preference_values && @preference_values[attribute] && @preference_values[attribute].include?(group)
-        # Value for this attribute/group has been written, but not saved yet:
+      if @preference_values && @preference_values[group] && @preference_values[group].include?(name)
+        # Value for this group/name has been written, but not saved yet:
         # grab from the pending values
-        value = @preference_values[attribute][group]
+        value = @preference_values[group][name]
       else
         # Split the group being filtered
         group_id, group_type = Preference.split_group(group)
         
         # Grab the first preference; if it doesn't exist, use the default value
-        preference = stored_preferences.find(:first, :conditions => {:attribute => attribute, :group_id => group_id, :group_type => group_type})
-        value = preference ? preference.value : preference_definitions[attribute].default_value
+        preference = stored_preferences.find(:first, :conditions => {:name => name, :group_id => group_id, :group_type => group_type})
+        value = preference ? preference.value : preference_definitions[name].default_value
       end
       
       value
     end
     alias_method :prefers, :preferred
     
-    # Sets a new value for the given attribute.  The actual Preference record
+    # Sets a new value for the given preference.  The actual Preference record
     # is *not* created until this record is saved.  In this way, preferences
     # act *exactly* the same as attributes.  They can be written to and
     # validated against, but won't actually be written to the database until
@@ -300,12 +300,12 @@ module Preferences
     #   
     #   user.set_preference(:color, 'blue', Car.first)  # => "blue"
     #   user.save!
-    def set_preference(attribute, value, group = nil)
-      attribute = attribute.to_s
+    def set_preference(name, value, group = nil)
+      name = name.to_s
       
       @preference_values ||= {}
-      @preference_values[attribute] ||= {}
-      @preference_values[attribute][group] = value
+      @preference_values[group] ||= {}
+      @preference_values[group][name] = value
       
       value
     end
@@ -315,10 +315,11 @@ module Preferences
       # was last saved
       def update_preferences
         if @preference_values
-          @preference_values.each do |attribute, grouped_records|
-            grouped_records.each do |group, value|
-              group_id, group_type = Preference.split_group(group)
-              attributes = {:attribute => attribute, :group_id => group_id, :group_type => group_type}
+          @preference_values.each do |group, new_preferences|
+            group_id, group_type = Preference.split_group(group)
+            
+            new_preferences.each do |name, value|
+              attributes = {:name => name, :group_id => group_id, :group_type => group_type}
               
               # Find an existing preference or build a new one
               preference = stored_preferences.find(:first, :conditions => attributes) ||  stored_preferences.build(attributes)

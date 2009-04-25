@@ -1,5 +1,7 @@
 == master
 
+* Rename Preference#attribute to #name to avoid conflicts with reserved methods in ActiveRecord
+
 == 0.3.0 / 2009-04-13
 
 * Add dependency on Rails 2.3

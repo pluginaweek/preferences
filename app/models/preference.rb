@@ -5,20 +5,20 @@
 # In addition to simple named preferences, preferences can also be grouped by
 # a particular value, be it a string or ActiveRecord object.  For example, a
 # User may have a preferred color for a particular Car.  In this case, the
-# +owner+ is the User, the +attribute+ is the color, and the +group+ is the Car.
-# This allows preferences to have a sort of context around them.
+# +owner+ is the User record, the +name+ is "color", and the +group+ is the
+# Car record.  This allows preferences to have a sort of context around them.
 class Preference < ActiveRecord::Base
-  belongs_to  :owner, :polymorphic => true
-  belongs_to  :group, :polymorphic => true
+  belongs_to :owner, :polymorphic => true
+  belongs_to :group, :polymorphic => true
   
-  validates_presence_of :attribute, :owner_id, :owner_type
+  validates_presence_of :name, :owner_id, :owner_type
   validates_presence_of :group_type, :if => :group_id?
   
   class << self
     # Splits the given group into its corresponding id and type. For simple
-    # primitives, the id will be nil.  For complex types, specifically ActiveRecord
-    # objects, the id is the unique identifier stored in the databse for the
-    # record.
+    # primitives, the id will be nil.  For complex types, specifically
+    # ActiveRecord objects, the id is the unique identifier stored in the
+    # database for the record.
     # 
     # For example,
     # 
@@ -36,7 +36,7 @@ class Preference < ActiveRecord::Base
     end
   end
   
-  # The definition for the attribute
+  # The definition of the preference as defined in the owner's model
   def definition
     # Optimize number of queries to the database by only looking up the actual
     # owner record for STI cases when the definition can't be found in the
@@ -58,9 +58,8 @@ class Preference < ActiveRecord::Base
   alias_method_chain :group, :optional_lookup
   
   private
-    # Finds the definition for this preference's attribute in the given owner
-    # class.
+    # Finds the definition for this preference in the given owner class.
     def find_definition(owner_class)
-      owner_class.respond_to?(:preference_definitions) && owner_class.preference_definitions[attribute]
+      owner_class.respond_to?(:preference_definitions) && owner_class.preference_definitions[name]
     end
 end

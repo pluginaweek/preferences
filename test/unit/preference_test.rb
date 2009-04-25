@@ -5,8 +5,8 @@ class PreferenceByDefaultTest < ActiveSupport::TestCase
     @preference = Preference.new
   end
   
-  def test_should_not_have_an_attribute
-    assert @preference.attribute.blank?
+  def test_should_not_have_a_name
+    assert @preference.name.blank?
   end
   
   def test_should_not_have_an_owner
@@ -40,10 +40,10 @@ class PreferenceTest < ActiveSupport::TestCase
     assert preference.valid?
   end
   
-  def test_should_require_an_attribute
-    preference = new_preference(:attribute => nil)
+  def test_should_require_a_name
+    preference = new_preference(:name => nil)
     assert !preference.valid?
-    assert preference.errors.invalid?(:attribute)
+    assert preference.errors.invalid?(:name)
   end
   
   def test_should_require_an_owner_id
@@ -84,7 +84,7 @@ class PreferenceTest < ActiveSupport::TestCase
   def test_should_protect_attributes_from_mass_assignment
     preference = Preference.new(
       :id => 1,
-      :attribute => 'notifications',
+      :name => 'notifications',
       :value => '123',
       :owner_id => 1,
       :owner_type => 'User',
@@ -93,7 +93,7 @@ class PreferenceTest < ActiveSupport::TestCase
     )
     
     assert_nil preference.id
-    assert_equal 'notifications', preference.attribute
+    assert_equal 'notifications', preference.name
     assert_equal '123', preference.value
     assert_equal 1, preference.owner_id
     assert_equal 'User', preference.owner_type
@@ -132,7 +132,7 @@ class PreferenceAfterBeingCreatedTest < ActiveSupport::TestCase
   def setup
     User.preference :notifications, :boolean
     
-    @preference = create_preference(:attribute => 'notifications')
+    @preference = create_preference(:name => 'notifications')
   end
   
   def test_should_have_an_owner
@@ -178,18 +178,18 @@ class PreferenceWithActiveRecordGroupTest < ActiveSupport::TestCase
   end
 end
 
-class PreferenceWithBooleanAttributeTest < ActiveSupport::TestCase
+class PreferenceWithBooleanTypeTest < ActiveSupport::TestCase
   def setup
     User.preference :notifications, :boolean
   end
   
   def test_should_type_cast_nil_values
-    preference = new_preference(:attribute => 'notifications', :value => nil)
+    preference = new_preference(:name => 'notifications', :value => nil)
     assert_nil preference.value
   end
   
   def test_should_type_cast_numeric_values
-    preference = new_preference(:attribute => 'notifications', :value => 0)
+    preference = new_preference(:name => 'notifications', :value => 0)
     assert_equal false, preference.value
     
     preference.value = 1
@@ -197,7 +197,7 @@ class PreferenceWithBooleanAttributeTest < ActiveSupport::TestCase
   end
   
   def test_should_type_cast_boolean_values
-    preference = new_preference(:attribute => 'notifications', :value => false)
+    preference = new_preference(:name => 'notifications', :value => false)
     assert_equal false, preference.value
     
     preference.value = true
@@ -213,7 +213,7 @@ end
 class PreferenceWithSTIOwnerTest < ActiveSupport::TestCase
   def setup
     @manager = create_manager
-    @preference = create_preference(:owner => @manager, :attribute => 'health_insurance', :value => true)
+    @preference = create_preference(:owner => @manager, :name => 'health_insurance', :value => true)
   end
   
   def test_should_have_an_owner

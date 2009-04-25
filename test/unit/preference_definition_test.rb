@@ -5,8 +5,8 @@ class PreferenceDefinitionByDefaultTest < ActiveSupport::TestCase
     @definition = Preferences::PreferenceDefinition.new(:notifications)
   end
   
-  def test_should_have_an_attribute
-    assert_equal 'notifications', @definition.attribute
+  def test_should_have_a_name
+    assert_equal 'notifications', @definition.name
   end
   
   def test_should_not_have_a_default_value
