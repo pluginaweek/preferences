@@ -7,7 +7,8 @@ spec = Gem::Specification.new do |s|
   s.name              = 'preferences'
   s.version           = '0.3.1'
   s.platform          = Gem::Platform::RUBY
-  s.summary           = 'Adds support for easily creating custom preferences for models'
+  s.summary           = 'Adds support for easily creating custom preferences for ActiveRecord models'
+  s.description       = s.summary
   
   s.files             = FileList['{app,lib,test}/**/*'] + %w(CHANGELOG.rdoc init.rb LICENSE Rakefile README.rdoc) - FileList['test/app_root/{log,log/*,script,script/*}']
   s.require_path      = 'lib'
