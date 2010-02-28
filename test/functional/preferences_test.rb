@@ -424,3 +424,151 @@ class UserWithStoredPreferencesForActiveRecordGroupsTest < ActiveSupport::TestCa
     assert_equal 2, @user.stored_preferences.size
   end
 end
+
+class UserWithScopeTest < ActiveSupport::TestCase
+  def setup
+    @user = create_user
+    @customized_user = create_user(:login => 'customized',
+      :prefers_hot_salsa => false,
+      :preferred_color => 'blue',
+      :preferred_language => 'Latin'
+    )
+    @customized_user.prefers_hot_salsa = false, 'home'
+    @customized_user.preferred_color = 'blue', 'home'
+    @customized_user.preferred_language = 'Latin', 'home'
+    @customized_user.save!
+  end
+  
+  def test_should_not_find_if_no_preference_matched
+    assert_equal [], User.with_preferences(:language => 'Italian')
+  end
+  
+  def test_should_find_with_null_preference
+    assert_equal [@user], User.with_preferences(:hot_salsa => nil)
+  end
+  
+  def test_should_find_with_default_preference
+    assert_equal [@user], User.with_preferences(:language => 'English')
+  end
+  
+  def test_should_find_with_multiple_default_preferences
+    assert_equal [@user], User.with_preferences(:language => 'English', :dark_chocolate => true)
+  end
+  
+  def test_should_find_with_custom_preference
+    assert_equal [@customized_user], User.with_preferences(:language => 'Latin')
+  end
+  
+  def test_should_find_with_multiple_custom_preferences
+    assert_equal [@customized_user], User.with_preferences(:language => 'Latin', :color => 'blue')
+  end
+  
+  def test_should_find_with_mixed_default_and_custom_preferences
+    assert_equal [@customized_user], User.with_preferences(:language => 'Latin', :dark_chocolate => true)
+  end
+  
+  def test_should_find_with_default_group_preference
+    assert_equal [@user], User.with_preferences(:home => {:language => 'English'})
+  end
+  
+  def test_should_find_with_multiple_default_group_preferences
+    assert_equal [@user], User.with_preferences(:home => {:language => 'English', :dark_chocolate => true})
+  end
+  
+  def test_should_find_with_custom_group_preference
+    assert_equal [@customized_user], User.with_preferences(:home => {:language => 'Latin'})
+  end
+  
+  def test_should_find_with_multiple_custom_group_preferences
+    assert_equal [@customized_user], User.with_preferences(:home => {:language => 'Latin', :color => 'blue'})
+  end
+  
+  def test_should_find_with_mixed_default_and_custom_group_preferences
+    assert_equal [@customized_user], User.with_preferences(:home => {:language => 'Latin', :dark_chocolate => true})
+  end
+  
+  def test_should_find_with_mixed_basic_and_group_preferences
+    @customized_user.preferred_language = 'English'
+    @customized_user.save!
+    
+    assert_equal [@customized_user], User.with_preferences(:language => 'English', :home => {:language => 'Latin'})
+  end
+  
+  def test_should_allow_chaining
+    assert_equal [@user], User.with_preferences(:language => 'English').with_preferences(:dark_chocolate => true)
+  end
+end
+
+class UserWithoutScopeTest < ActiveSupport::TestCase
+  def setup
+    @user = create_user
+    @customized_user = create_user(:login => 'customized',
+      :prefers_hot_salsa => false,
+      :preferred_color => 'blue',
+      :preferred_language => 'Latin'
+    )
+    @customized_user.prefers_hot_salsa = false, 'home'
+    @customized_user.preferred_color = 'blue', 'home'
+    @customized_user.preferred_language = 'Latin', 'home'
+    @customized_user.save!
+  end
+  
+  def test_should_not_find_if_no_preference_matched
+    assert_equal [], User.without_preferences(:dark_chocolate => true)
+  end
+  
+  def test_should_find_with_null_preference
+    assert_equal [@user], User.without_preferences(:hot_salsa => false)
+  end
+  
+  def test_should_find_with_default_preference
+    assert_equal [@user], User.without_preferences(:language => 'Latin')
+  end
+  
+  def test_should_find_with_multiple_default_preferences
+    assert_equal [@user], User.without_preferences(:language => 'Latin', :dark_chocolate => false)
+  end
+  
+  def test_should_find_with_custom_preference
+    assert_equal [@customized_user], User.without_preferences(:language => 'English')
+  end
+  
+  def test_should_find_with_multiple_custom_preferences
+    assert_equal [@customized_user], User.without_preferences(:language => 'English', :color => nil)
+  end
+  
+  def test_should_find_with_mixed_default_and_custom_preferences
+    assert_equal [@customized_user], User.without_preferences(:language => 'English', :dark_chocolate => false)
+  end
+  
+  def test_should_find_with_default_group_preference
+    assert_equal [@user], User.without_preferences(:home => {:language => 'Latin'})
+  end
+  
+  def test_should_find_with_multiple_default_group_preferences
+    assert_equal [@user], User.without_preferences(:home => {:language => 'Latin', :dark_chocolate => false})
+  end
+  
+  def test_should_find_with_custom_group_preference
+    assert_equal [@customized_user], User.without_preferences(:home => {:language => 'English'})
+  end
+  
+  def test_should_find_with_multiple_custom_group_preferences
+    assert_equal [@customized_user], User.without_preferences(:home => {:language => 'English', :color => nil})
+  end
+  
+  def test_should_find_with_mixed_default_and_custom_group_preferences
+    assert_equal [@customized_user], User.without_preferences(:home => {:language => 'English', :dark_chocolate => false})
+  end
+  
+  def test_should_find_with_mixed_basic_and_group_preferences
+    @customized_user.preferred_language = 'English'
+    @customized_user.save!
+    
+    assert_equal [@customized_user], User.without_preferences(:language => 'Latin', :home => {:language => 'English'})
+  end
+  
+  def test_should_allow_chaining
+    assert_equal [@user], User.without_preferences(:language => 'Latin').without_preferences(:dark_chocolate => false)
+  end
+end

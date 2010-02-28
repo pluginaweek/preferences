@@ -74,6 +74,27 @@ module Preferences
     #   specified for a record.  This will not include default preferences
     #   unless they have been explicitly set.
     # 
+    # == Named scopes
+    # 
+    # In addition to the above associations, the following named scopes get
+    # generated for the model:
+    # * +with_preferences+ - Finds all records with a given set of preferences
+    # * +without_preferences+ - Finds all records without a given set of preferences
+    # 
+    # In addition to utilizing preferences stored in the database, each of the
+    # above scopes also take into account the defaults that have been defined
+    # for each preference.
+    # 
+    # Example:
+    # 
+    #   User.with_preferences(:notifications => true)
+    #   User.with_preferences(:notifications => true, :color => 'blue')
+    #   
+    #   # Searching with group preferences
+    #   car = Car.find(:first)
+    #   User.with_preferences(car => {:color => 'blue'})
+    #   User.with_preferences(:notifications => true, car => {:color => 'blue'})
+    # 
     # == Generated accessors
     # 
     # In addition to calling <tt>prefers?</tt> and +preferred+ on a record,
@@ -126,6 +147,11 @@ module Preferences
         
         after_save :update_preferences
         
+        # Named scopes
+        named_scope :with_preferences, lambda {|preferences| build_preference_scope(preferences)}
+        named_scope :without_preferences, lambda {|preferences| build_preference_scope(preferences, true)}
+        
+        extend Preferences::ClassMethods
         include Preferences::InstanceMethods
       end
       
@@ -158,6 +184,59 @@ module Preferences
       alias_method "prefers_#{name}=", "preferred_#{name}="
       
       definition
+    end
+  end
+  
+  module ClassMethods #:nodoc:
+    # Generates the scope for looking under records with a specific set of
+    # preferences associated with them.
+    # 
+    # Note thate this is a bit more complicated than usual since the preference
+    # definitions aren't in the database for joins, defaults need to be accounted
+    # for, and querying for the the presence of multiple preferences requires
+    # multiple joins.
+    def build_preference_scope(preferences, inverse = false)
+      joins = []
+      statements = []
+      values = []
+      
+      # Flatten the preferences for easier processing
+      preferences = preferences.inject({}) do |result, (group, value)|
+        if value.is_a?(Hash)
+          value.each {|preference, value| result[[group, preference]] = value}
+        else
+          result[[nil, group]] = value
+        end
+        result
+      end
+      
+      preferences.each do |(group, preference), value|
+        preference = preference.to_s
+        value = preference_definitions[preference.to_s].type_cast(value)
+        is_default = default_preferences[preference.to_s] == value
+        
+        group_id, group_type = Preference.split_group(group)
+        table = "preferences_#{group_id}_#{group_type}_#{preference}"
+        
+        # Since each preference is a different record, they need their own
+        # join so that the proper conditions can be set
+        joins << "LEFT JOIN preferences AS #{table} ON #{table}.owner_id = #{table_name}.#{primary_key} AND " + sanitize_sql(
+          "#{table}.owner_type" => base_class.name.to_s,
+          "#{table}.group_id" => group_id,
+          "#{table}.group_type" => group_type,
+          "#{table}.name" => preference
+        )
+        
+        if inverse
+          statements << "#{table}.id IS NOT NULL AND #{table}.value " + (value.nil? ? ' IS NOT NULL' : ' != ?') + (!is_default ? " OR #{table}.id IS NULL" : '')
+        else
+          statements << "#{table}.id IS NOT NULL AND #{table}.value " + (value.nil? ? ' IS NULL' : ' = ?') + (is_default ? " OR #{table}.id IS NULL" : '')
+        end
+        values << value unless value.nil?
+      end
+      
+      sql = statements.map! {|statement| "(#{statement})"} * ' AND '
+      {:joins => joins, :conditions => values.unshift(sql)}
     end
   end
   

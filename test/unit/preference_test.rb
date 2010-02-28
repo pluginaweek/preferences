@@ -114,6 +114,10 @@ class PreferenceAsAClassTest < ActiveSupport::TestCase
     assert_nil group_id
     assert_equal 'car', group_type
     
+    group_id, group_type = Preference.split_group(:car)
+    assert_nil group_id
+    assert_equal 'car', group_type
+    
     group_id, group_type = Preference.split_group(10)
     assert_nil group_id
     assert_equal 10, group_type

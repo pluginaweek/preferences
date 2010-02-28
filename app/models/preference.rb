@@ -29,7 +29,7 @@ class Preference < ActiveRecord::Base
       if group.is_a?(ActiveRecord::Base)
         group_id, group_type = group.id, group.class.base_class.name.to_s
       else
-        group_id, group_type = nil, group
+        group_id, group_type = nil, group.is_a?(Symbol) ? group.to_s : group
       end
       
       [group_id, group_type]

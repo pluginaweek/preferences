@@ -1,5 +1,7 @@
 == master
 
+* Add named scopes: #with_preferences and #without_preferences
+
 == 0.3.1 / 2009-04-25
 
 * Rename Preference#attribute to #name to avoid conflicts with reserved methods in ActiveRecord
