@@ -40,6 +40,17 @@ a separate table and making it dead-simple to define and manage preferences.
 
 == Usage
 
+=== Installation
+
++preferences requires an additional database table to work.  You can generate
+a migration for this table like so:
+
+  script/generate preferences
+
+Then simply migrate your database:
+
+  rake db:migrate
+
 === Defining preferences
 
 To define the preferences for a model, you can do so right within the model:

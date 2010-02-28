@@ -1,5 +1,6 @@
 == master
 
+* Add a generator for db migration to make installation a bit easier [Tim Lowrimore]
 * Add named scopes: #with_preferences and #without_preferences
 
 == 0.3.1 / 2009-04-25
