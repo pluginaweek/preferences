@@ -10,7 +10,7 @@ spec = Gem::Specification.new do |s|
   s.summary           = 'Adds support for easily creating custom preferences for ActiveRecord models'
   s.description       = s.summary
   
-  s.files             = FileList['{app,lib,test}/**/*'] + %w(CHANGELOG.rdoc init.rb LICENSE Rakefile README.rdoc) - FileList['test/app_root/{log,log/*,script,script/*}']
+  s.files             = FileList['{app,generators,lib,test}/**/*'] + %w(CHANGELOG.rdoc init.rb LICENSE Rakefile README.rdoc) - FileList['test/app_root/{log,log/*,script,script/*}']
   s.require_path      = 'lib'
   s.has_rdoc          = true
   s.test_files        = Dir['test/**/*_test.rb']
