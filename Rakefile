@@ -1,7 +1,8 @@
+require 'rubygems'
+require 'rake'
 require 'rake/testtask'
 require 'rake/rdoctask'
 require 'rake/gempackagetask'
-require 'rake/contrib/sshpublisher'
 
 spec = Gem::Specification.new do |s|
   s.name              = 'preferences'
@@ -63,17 +64,17 @@ end
 
 Rake::GemPackageTask.new(spec) do |p|
   p.gem_spec = spec
-  p.need_tar = true
-  p.need_zip = true
 end
 
 desc 'Publish the beta gem.'
 task :pgem => [:package] do
+  require 'rake/contrib/sshpublisher'
   Rake::SshFilePublisher.new('aaron@pluginaweek.org', '/home/aaron/gems.pluginaweek.org/public/gems', 'pkg', "#{spec.name}-#{spec.version}.gem").upload
 end
 
 desc 'Publish the API documentation.'
 task :pdoc => [:rdoc] do
+  require 'rake/contrib/sshpublisher'
   Rake::SshDirPublisher.new('aaron@pluginaweek.org', "/home/aaron/api.pluginaweek.org/public/#{spec.name}", 'rdoc').upload
 end
 
@@ -82,15 +83,8 @@ task :publish => [:pgem, :pdoc, :release]
 
 desc 'Publish the release files to RubyForge.'
 task :release => [:gem, :package] do
-  require 'rubyforge'
+  require 'rake/gemcutter'
   
-  ruby_forge = RubyForge.new.configure
-  ruby_forge.login
-  
-  %w(gem tgz zip).each do |ext|
-    file = "pkg/#{spec.name}-#{spec.version}.#{ext}"
-    puts "Releasing #{File.basename(file)}..."
-    
-    ruby_forge.add_release(spec.rubyforge_project, spec.name, spec.version, file)
-  end
+  Rake::Gemcutter::Tasks.new(spec).define
+  Rake::Task['gem:push'].invoke
 end
