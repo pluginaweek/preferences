@@ -108,10 +108,10 @@ module Preferences
     # ...generates the following methods:
     # * <tt>prefers_notifications?</tt> - Whether a value has been specified, i.e. <tt>record.prefers?(:notifications)</tt>
     # * <tt>prefers_notifications</tt> - The actual value stored, i.e. <tt>record.prefers(:notifications)</tt>
-    # * <tt>prefers_notifications=(value)</tt> - Sets a new value, i.e. <tt>record.set_preference(:notifications, value)</tt>
+    # * <tt>prefers_notifications=(value)</tt> - Sets a new value, i.e. <tt>record.write_preference(:notifications, value)</tt>
     # * <tt>preferred_notifications?</tt> - Whether a value has been specified, i.e. <tt>record.preferred?(:notifications)</tt>
     # * <tt>preferred_notifications</tt> - The actual value stored, i.e. <tt>record.preferred(:notifications)</tt>
-    # * <tt>preferred_notifications=(value)</tt> - Sets a new value, i.e. <tt>record.set_preference(:notifications, value)</tt>
+    # * <tt>preferred_notifications=(value)</tt> - Sets a new value, i.e. <tt>record.write_preference(:notifications, value)</tt>
     # 
     # Notice that there are two tenses used depending on the context of the
     # preference.  Conventionally, <tt>prefers_notifications?</tt> is better
@@ -179,7 +179,7 @@ module Preferences
       
       # Writer
       define_method("preferred_#{name}=") do |*args|
-        set_preference(*args.flatten.unshift(name))
+        write_preference(*args.flatten.unshift(name))
       end
       alias_method "prefers_#{name}=", "preferred_#{name}="
       
@@ -331,7 +331,7 @@ module Preferences
     #   user.preferred?(:color, 'cars')     # => true
     #   user.preferred?(:color, Car.first)  # => true
     #   
-    #   user.set_preference(:color, nil)
+    #   user.write_preference(:color, nil)
     #   user.preferred(:color)              # => nil
     #   user.preferred?(:color)             # => false
     def preferred?(name, group = nil)
@@ -357,7 +357,7 @@ module Preferences
     #   user.preferred(:color, 'cars')    # => "red"
     #   user.preferred(:color, Car.first) # => "red"
     #   
-    #   user.set_preference(:color, 'blue')
+    #   user.write_preference(:color, 'blue')
     #   user.preferred(:color)            # => "blue"
     def preferred(name, group = nil)
       name = name.to_s
@@ -393,12 +393,12 @@ module Preferences
     # == Examples
     # 
     #   user = User.find(:first)
-    #   user.set_preference(:color, 'red')              # => "red"
+    #   user.write_preference(:color, 'red')              # => "red"
     #   user.save!
     #   
-    #   user.set_preference(:color, 'blue', Car.first)  # => "blue"
+    #   user.write_preference(:color, 'blue', Car.first)  # => "blue"
     #   user.save!
-    def set_preference(name, value, group = nil)
+    def write_preference(name, value, group = nil)
       name = name.to_s
       group = group.is_a?(Symbol) ? group.to_s : group
       

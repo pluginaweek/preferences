@@ -424,29 +424,29 @@ class PreferencesWriterTest < ModelPreferenceTest
   end
   
   def test_should_have_same_value_if_not_changed
-    @user.set_preference(:notifications, true)
+    @user.write_preference(:notifications, true)
     assert_equal true, @user.preferred(:notifications)
   end
   
   def test_should_use_new_value_if_changed
-    @user.set_preference(:notifications, false)
+    @user.write_preference(:notifications, false)
     assert_equal false, @user.preferred(:notifications)
   end
   
   def test_should_not_save_record_after_changing_preference
     @user.login = 'test'
-    @user.set_preference(:notifications, false)
+    @user.write_preference(:notifications, false)
     
     assert_equal 'admin', User.find(@user.id).login
   end
   
   def test_should_not_create_stored_preferences_immediately
-    @user.set_preference(:notifications, false)
+    @user.write_preference(:notifications, false)
     assert @user.stored_preferences.empty?
   end
   
   def test_should_not_create_stored_preference_if_value_not_changed
-    @user.set_preference(:notifications, true)
+    @user.write_preference(:notifications, true)
     @user.save!
     
     assert_equal 0, @user.stored_preferences.count
@@ -455,28 +455,28 @@ class PreferencesWriterTest < ModelPreferenceTest
   def test_should_not_create_stored_integer_preference_if_typecast_not_changed
     User.preference :age, :integer
     
-    @user.set_preference(:age, '')
+    @user.write_preference(:age, '')
     @user.save!
     
     assert_equal 0, @user.stored_preferences.count
   end
   
   def test_should_create_stored_preference_if_value_changed
-    @user.set_preference(:notifications, false)
+    @user.write_preference(:notifications, false)
     @user.save!
     
     assert_equal 1, @user.stored_preferences.count
   end
   
   def test_should_reset_unsaved_preferences_after_reload
-    @user.set_preference(:notifications, false)
+    @user.write_preference(:notifications, false)
     @user.reload
     
     assert_equal true, @user.preferred(:notifications)
   end
   
   def test_should_not_save_reset_preferences_after_reload
-    @user.set_preference(:notifications, false)
+    @user.write_preference(:notifications, false)
     @user.reload
     @user.save!
     
@@ -486,7 +486,7 @@ class PreferencesWriterTest < ModelPreferenceTest
   def test_should_overwrite_existing_stored_preference_if_value_changed
     preference = create_preference(:owner => @user, :name => 'notifications', :value => true)
     
-    @user.set_preference(:notifications, false)
+    @user.write_preference(:notifications, false)
     @user.save!
     
     preference.reload
@@ -496,7 +496,7 @@ class PreferencesWriterTest < ModelPreferenceTest
   def test_should_not_remove_preference_if_set_to_default
     create_preference(:owner => @user, :name => 'notifications', :value => false)
     
-    @user.set_preference(:notifications, true)
+    @user.write_preference(:notifications, true)
     @user.save!
     @user.reload
     
@@ -508,7 +508,7 @@ class PreferencesWriterTest < ModelPreferenceTest
   def test_should_not_remove_preference_if_set_to_nil
     create_preference(:owner => @user, :name => 'notifications', :value => false)
     
-    @user.set_preference(:notifications, nil)
+    @user.write_preference(:notifications, nil)
     @user.save!
     @user.reload
     
@@ -526,31 +526,31 @@ class PreferencesGroupWriterTest < ModelPreferenceTest
   end
   
   def test_should_have_same_value_if_not_changed
-    @user.set_preference(:notifications, true, :chat)
+    @user.write_preference(:notifications, true, :chat)
     assert_equal true, @user.preferred(:notifications, :chat)
   end
   
   def test_should_use_new_value_if_changed
-    @user.set_preference(:notifications, false, :chat)
+    @user.write_preference(:notifications, false, :chat)
     assert_equal false, @user.preferred(:notifications, :chat)
   end
   
   def test_should_not_create_stored_preference_if_value_not_changed
-    @user.set_preference(:notifications, true, :chat)
+    @user.write_preference(:notifications, true, :chat)
     @user.save!
     
     assert_equal 0, @user.stored_preferences.count
   end
   
   def test_should_create_stored_preference_if_value_changed
-    @user.set_preference(:notifications, false, :chat)
+    @user.write_preference(:notifications, false, :chat)
     @user.save!
     
     assert_equal 1, @user.stored_preferences.count
   end
   
   def test_should_set_group_attributes_on_stored_preferences
-    @user.set_preference(:notifications, false, :chat)
+    @user.write_preference(:notifications, false, :chat)
     @user.save!
     
     preference = @user.stored_preferences.first
@@ -561,7 +561,7 @@ class PreferencesGroupWriterTest < ModelPreferenceTest
   def test_should_overwrite_existing_stored_preference_if_value_changed
     preference = create_preference(:owner => @user, :group_type => 'chat', :name => 'notifications', :value => true)
     
-    @user.set_preference(:notifications, false, :chat)
+    @user.write_preference(:notifications, false, :chat)
     @user.save!
     
     preference.reload
@@ -579,31 +579,31 @@ class PreferencesARGroupWriterTest < ModelPreferenceTest
   end
   
   def test_should_have_same_value_if_not_changed
-    @user.set_preference(:notifications, true, @car)
+    @user.write_preference(:notifications, true, @car)
     assert_equal true, @user.preferred(:notifications, @car)
   end
   
   def test_should_use_new_value_if_changed
-    @user.set_preference(:notifications, false, @car)
+    @user.write_preference(:notifications, false, @car)
     assert_equal false, @user.preferred(:notifications, @car)
   end
   
   def test_should_not_create_stored_preference_if_value_not_changed
-    @user.set_preference(:notifications, true, @car)
+    @user.write_preference(:notifications, true, @car)
     @user.save!
     
     assert_equal 0, @user.stored_preferences.count
   end
   
   def test_should_create_stored_preference_if_value_changed
-    @user.set_preference(:notifications, false, @car)
+    @user.write_preference(:notifications, false, @car)
     @user.save!
     
     assert_equal 1, @user.stored_preferences.count
   end
   
   def test_should_set_group_attributes_on_stored_preferences
-    @user.set_preference(:notifications, false, @car)
+    @user.write_preference(:notifications, false, @car)
     @user.save!
     
     preference = @user.stored_preferences.first
@@ -625,7 +625,7 @@ class PreferencesLookupTest < ModelPreferenceTest
   end
   
   def test_should_merge_defaults_with_unsaved_changes
-    @user.set_preference(:notifications, false)
+    @user.write_preference(:notifications, false)
     assert_equal e = {'notifications' => false, 'language' => 'English'}, @user.preferences
   end
   
@@ -636,7 +636,7 @@ class PreferencesLookupTest < ModelPreferenceTest
   
   def test_should_merge_stored_preferences_with_unsaved_changes
     create_preference(:owner => @user, :name => 'notifications', :value => false)
-    @user.set_preference(:language, 'Latin')
+    @user.write_preference(:language, 'Latin')
     assert_equal e = {'notifications' => false, 'language' => 'Latin'}, @user.preferences
   end
   
@@ -676,7 +676,7 @@ class PreferencesGroupLookupTest < ModelPreferenceTest
   end
   
   def test_should_merge_defaults_with_unsaved_changes
-    @user.set_preference(:notifications, false, :chat)
+    @user.write_preference(:notifications, false, :chat)
     assert_equal e = {'notifications' => false, 'language' => 'English'}, @user.preferences(:chat)
   end
   
@@ -687,7 +687,7 @@ class PreferencesGroupLookupTest < ModelPreferenceTest
   
   def test_should_merge_stored_preferences_with_unsaved_changes
     create_preference(:owner => @user, :group_type => 'chat', :name => 'notifications', :value => false)
-    @user.set_preference(:language, 'Latin', :chat)
+    @user.write_preference(:language, 'Latin', :chat)
     assert_equal e = {'notifications' => false, 'language' => 'Latin'}, @user.preferences(:chat)
   end
   
@@ -732,7 +732,7 @@ class PreferencesARGroupLookupTest < ModelPreferenceTest
   end
   
   def test_should_merge_defaults_with_unsaved_changes
-    @user.set_preference(:notifications, false, @car)
+    @user.write_preference(:notifications, false, @car)
     assert_equal e = {'notifications' => false, 'language' => 'English'}, @user.preferences(@car)
   end
   
@@ -743,7 +743,7 @@ class PreferencesARGroupLookupTest < ModelPreferenceTest
   
   def test_should_merge_stored_preferences_with_unsaved_changes
     create_preference(:owner => @user, :group_type => 'Car', :group_id => @car.id, :name => 'notifications', :value => false)
-    @user.set_preference(:language, 'Latin', @car)
+    @user.write_preference(:language, 'Latin', @car)
     assert_equal e = {'notifications' => false, 'language' => 'Latin'}, @user.preferences(@car)
   end
 end
@@ -763,7 +763,7 @@ class PreferencesNilGroupLookupTest < ModelPreferenceTest
   end
   
   def test_should_merge_defaults_with_unsaved_changes
-    @user.set_preference(:notifications, false)
+    @user.write_preference(:notifications, false)
     assert_equal e = {'notifications' => false, 'language' => 'English'}, @user.preferences(nil)
   end
   
@@ -774,7 +774,7 @@ class PreferencesNilGroupLookupTest < ModelPreferenceTest
   
   def test_should_merge_stored_preferences_with_unsaved_changes
     create_preference(:owner => @user, :name => 'notifications', :value => false)
-    @user.set_preference(:language, 'Latin')
+    @user.write_preference(:language, 'Latin')
     assert_equal e = {'notifications' => false, 'language' => 'Latin'}, @user.preferences(nil)
   end
 end

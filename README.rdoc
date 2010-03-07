@@ -112,8 +112,8 @@ Reader method:
   user.preferred(:language)     # => "English"
 
 Write method:
-  user.set_preference(:hot_salsa, false)      # => false
-  user.set_preference(:language, "English")   # => "English"
+  user.write_preference(:hot_salsa, false)      # => false
+  user.write_preference(:language, "English")   # => "English"
 
 === Accessing all preferences
 
@@ -146,7 +146,7 @@ through an example:
   car = Car.find(:first)
   
   user.preferred_color = 'red', car
-  # user.set_preference(:color, 'red', car) # The generic way
+  # user.write_preference(:color, 'red', car) # The generic way
 
 This will create a color preference of "red" for the given car.  In this way,
 you can have "color" preferences for different records.
