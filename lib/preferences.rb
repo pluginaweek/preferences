@@ -109,9 +109,21 @@ module Preferences
     # * <tt>prefers_notifications?</tt> - Whether a value has been specified, i.e. <tt>record.prefers?(:notifications)</tt>
     # * <tt>prefers_notifications</tt> - The actual value stored, i.e. <tt>record.prefers(:notifications)</tt>
     # * <tt>prefers_notifications=(value)</tt> - Sets a new value, i.e. <tt>record.write_preference(:notifications, value)</tt>
-    # * <tt>preferred_notifications?</tt> - Whether a value has been specified, i.e. <tt>record.preferred?(:notifications)</tt>
-    # * <tt>preferred_notifications</tt> - The actual value stored, i.e. <tt>record.preferred(:notifications)</tt>
-    # * <tt>preferred_notifications=(value)</tt> - Sets a new value, i.e. <tt>record.write_preference(:notifications, value)</tt>
+    # * <tt>prefers_notifications_changed?</tt> - Whether the preference has unsaved changes
+    # * <tt>prefers_notifications_was</tt> - The last saved value for the preference
+    # * <tt>prefers_notifications_change</tt> - A list of [original_value, new_value] if the preference has changed
+    # * <tt>prefers_notifications_will_change!</tt> - Forces the preference to get updated
+    # * <tt>reset_prefers_notifications!</tt> - Reverts any unsaved changes to the preference
+    # 
+    # ...and the equivalent +preferred+ methods:
+    # * <tt>preferred_notifications?</tt>
+    # * <tt>preferred_notifications</tt>
+    # * <tt>preferred_notifications=(value)</tt>
+    # * <tt>preferred_notifications_changed?</tt>
+    # * <tt>preferred_notifications_was</tt>
+    # * <tt>preferred_notifications_change</tt>
+    # * <tt>preferred_notifications_will_change!</tt>
+    # * <tt>reset_preferred_notifications!</tt>
     # 
     # Notice that there are two tenses used depending on the context of the
     # preference.  Conventionally, <tt>prefers_notifications?</tt> is better
@@ -182,6 +194,32 @@ module Preferences
         write_preference(*args.flatten.unshift(name))
       end
       alias_method "prefers_#{name}=", "preferred_#{name}="
+      
+      # Changes
+      define_method("preferred_#{name}_changed?") do |*group|
+        preference_changed?(name, group.first)
+      end
+      alias_method "prefers_#{name}_changed?", "preferred_#{name}_changed?"
+      
+      define_method("preferred_#{name}_was") do |*group|
+        preference_was(name, group.first)
+      end
+      alias_method "prefers_#{name}_was", "preferred_#{name}_was"
+      
+      define_method("preferred_#{name}_change") do |*group|
+        preference_change(name, group.first)
+      end
+      alias_method "prefers_#{name}_change", "preferred_#{name}_change"
+      
+      define_method("preferred_#{name}_will_change!") do |*group|
+        preference_will_change!(name, group.first)
+      end
+      alias_method "prefers_#{name}_will_change!", "preferred_#{name}_will_change!"
+      
+      define_method("reset_preferred_#{name}!") do |*group|
+        reset_preference!(name, group.first)
+      end
+      alias_method "reset_prefers_#{name}!", "reset_preferred_#{name}!"
       
       definition
     end
@@ -496,6 +534,22 @@ module Preferences
       # If the perference did not change, this will return nil.
       def preference_change(name, group)
         [preferences_changed_group(group)[name], preferred(name, group)] if preference_changed?(name, group)
+      end
+      
+      # Gets the last saved value for the given preference
+      def preference_was(name, group)
+        preference_changed?(name, group) ? preferences_changed_group(group)[name] : preferred(name, group)
+      end
+      
+      # Forces the given preference to be saved regardless of whether the value
+      # is actually diferent
+      def preference_will_change!(name, group)
+        preferences_changed_group(group)[name] = clone_preference_value(name, group)
+      end
+      
+      # Reverts any unsaved changes to the given preference
+      def reset_preference!(name, group)
+        write_preference(name, preferences_changed_group(group)[name], group) if preference_changed?(name, group)
       end
       
       # Determines whether the old value is different from the new value for the

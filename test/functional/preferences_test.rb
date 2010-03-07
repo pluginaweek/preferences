@@ -93,6 +93,46 @@ class PreferencesAfterBeingDefinedTest < ModelPreferenceTest
     assert @user.respond_to?(:prefers_notifications=)
   end
   
+  def test_should_create_preferred_changed_query
+    assert @user.respond_to?(:preferred_notifications_changed?)
+  end
+  
+  def test_should_create_prefers_changed_query
+    assert @user.respond_to?(:prefers_notifications_changed?)
+  end
+  
+  def test_should_create_preferred_was
+    assert @user.respond_to?(:preferred_notifications_was)
+  end
+  
+  def test_should_create_prefers_was
+    assert @user.respond_to?(:prefers_notifications_was)
+  end
+  
+  def test_should_create_preferred_change
+    assert @user.respond_to?(:preferred_notifications_change)
+  end
+  
+  def test_should_create_prefers_change
+    assert @user.respond_to?(:prefers_notifications_change)
+  end
+  
+  def test_should_create_preferred_will_change
+    assert @user.respond_to?(:preferred_notifications_will_change!)
+  end
+  
+  def test_should_create_prefers_will_change
+    assert @user.respond_to?(:prefers_notifications_will_change!)
+  end
+  
+  def test_should_create_preferred_reset
+    assert @user.respond_to?(:reset_preferred_notifications!)
+  end
+  
+  def test_should_create_prefers_reset
+    assert @user.respond_to?(:reset_prefers_notifications!)
+  end
+  
   def test_should_include_new_definitions_in_preference_definitions
     assert_equal e = {'notifications' => @definition}, User.preference_definitions
   end
@@ -670,8 +710,16 @@ class PreferencesAfterChangingPreferenceTest < ModelPreferenceTest
     assert_equal true, @user.preferences_changed?
   end
   
+  def test_should_query_preference_changed
+    assert_equal true, @user.prefers_notifications_changed?
+  end
+  
   def test_should_not_query_preferences_changed_for_group
     assert_equal false, @user.preferences_changed?(:chat)
+  end
+  
+  def test_should_not_query_preference_changed_for_group
+    assert_equal false, @user.prefers_notifications_changed?(:chat)
   end
   
   def test_should_have_preferences_changed
@@ -699,8 +747,24 @@ class PreferencesAfterChangingPreferenceTest < ModelPreferenceTest
     assert_not_same @user.preference_changes, @user.preference_changes
   end
   
+  def test_should_have_preference_change
+    assert_equal [true, false], @user.prefers_notifications_change
+  end
+  
+  def test_should_have_preference_was
+    assert_equal true, @user.prefers_notifications_was
+  end
+  
   def test_should_not_have_preference_changes_for_group
     assert_equal e = {}, @user.preference_changes(:chat)
+  end
+  
+  def test_should_not_have_preference_change_for_group
+    assert_nil @user.prefers_notifications_change(:chat)
+  end
+  
+  def test_should_have_preference_was_for_group
+    assert_equal true, @user.prefers_notifications_was(:chat)
   end
   
   def test_should_use_latest_value_for_preference_changes
@@ -736,8 +800,16 @@ class PreferencesAfterChangingGroupPreferenceTest < ModelPreferenceTest
     assert_equal false, @user.preferences_changed?
   end
   
+  def test_not_should_query_preference_changed
+    assert_equal false, @user.prefers_notifications_changed?
+  end
+  
   def test_should_query_preferences_changed_for_group
     assert_equal true, @user.preferences_changed?(:chat)
+  end
+  
+  def test_should_query_preference_changed_for_group
+    assert_equal true, @user.prefers_notifications_changed?(:chat)
   end
   
   def test_should_have_preferences_changed
@@ -752,8 +824,24 @@ class PreferencesAfterChangingGroupPreferenceTest < ModelPreferenceTest
     assert_equal e = {}, @user.preference_changes
   end
   
+  def test_should_not_have_preference_change
+    assert_nil @user.prefers_notifications_change
+  end
+  
+  def test_should_have_preference_was
+    assert_equal true, @user.prefers_notifications_was
+  end
+  
   def test_should_not_have_preference_changes_for_group
     assert_equal e = {'notifications' => [true, false]}, @user.preference_changes(:chat)
+  end
+  
+  def test_should_have_preference_change_for_group
+    assert_equal [true, false], @user.prefers_notifications_change(:chat)
+  end
+  
+  def test_should_have_preference_was_for_group
+    assert_equal true, @user.prefers_notifications_was(:chat)
   end
 end
 
@@ -776,6 +864,92 @@ class PreferencesAfterRevertPreferenceChangeTest < ModelPreferenceTest
   
   def test_should_not_have_preference_changes
     assert_equal e = {}, @user.preference_changes
+  end
+end
+
+class PreferencesAfterForcingChangeTest < ModelPreferenceTest
+  def setup
+    User.preference :notifications, :boolean, :default => true
+    
+    @user = create_user
+    @user.prefers_notifications_will_change!
+    @user.save
+  end
+  
+  def test_should_store_preference
+    assert_equal 1, @user.stored_preferences.count
+    
+    preference = @user.stored_preferences.first
+    assert_equal nil, preference.group_type
+    assert_equal nil, preference.group_id
+    assert_equal true, preference.value
+  end
+end
+
+class PreferencesAfterForcingChangeForGroupTest < ModelPreferenceTest
+  def setup
+    User.preference :notifications, :boolean, :default => true
+    User.preference :language, :string, :default => 'English'
+    
+    @user = create_user
+    @user.prefers_notifications_will_change!(:chat)
+    @user.save
+  end
+  
+  def test_should_store_preference
+    assert_equal 1, @user.stored_preferences.count
+    
+    preference = @user.stored_preferences.first
+    assert_equal 'chat', preference.group_type
+    assert_equal nil, preference.group_id
+    assert_equal true, preference.value
+  end
+  
+  def test_should_use_cloned_value_for_tracking_old_value
+    old_value = @user.preferred(:language)
+    @user.preferred_language_will_change!
+    
+    tracked_old_value = @user.preferred_language_was
+    assert_equal old_value, tracked_old_value
+    assert_not_same old_value, tracked_old_value
+  end
+end
+
+class PreferencesAfterResettingPreferenceTest < ModelPreferenceTest
+  def setup
+    User.preference :notifications, :boolean, :default => true
+    
+    @user = create_user
+    @user.write_preference(:notifications, false)
+    @user.write_preference(:notifications, false, :chat)
+    @user.reset_prefers_notifications!
+  end
+  
+  def test_should_revert_to_original_value
+    assert_equal true, @user.preferred(:notifications)
+  end
+  
+  def test_should_not_reset_groups
+    assert_equal true, @user.preferred(:notifications, :chat)
+  end
+end
+
+class PreferencesAfterResettingPreferenceTest < ModelPreferenceTest
+  def setup
+    User.preference :notifications, :boolean, :default => true
+    
+    @user = create_user
+    @user.write_preference(:notifications, false)
+    @user.write_preference(:notifications, false, :chat)
+    @user.reset_prefers_notifications!(:chat)
+  end
+  
+  def test_should_revert_to_original_value
+    assert_equal true, @user.preferred(:notifications, :chat)
+  end
+  
+  def test_should_not_reset_default_group
+    assert_equal false, @user.preferred(:notifications)
   end
 end
 
