@@ -162,14 +162,13 @@ preferences by name.  For example,
 
   user = User.find(:first)
   
-  user.preferred_color = 'red', 'automobiles'
-  user.preferred_color = 'tan', 'clothing'
+  user.preferred_color = 'red', :automobiles
+  user.preferred_color = 'tan', :clothing
   
-  user.preferred_color('automobiles')   # => "red"
-  user.preferred_color('clothing')      # => "tan"
-
-  user.preferences                # => {"color"=>nil, "automobiles"=>{"color"=>"red"}, "clothing=>{"color=>"tan"}}
-  user.preferences('automobiles') # => {"color"=>"red"}
+  user.preferred_color(:automobiles)  # => "red"
+  user.preferred_color(:clothing)     # => "tan"
+  
+  user.preferences(:automobiles)      # => {"color"=>"red"}
 
 === Saving preferences
 
