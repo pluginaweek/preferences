@@ -265,8 +265,6 @@ module Preferences
     #   user.preferences(:cars)
     #   => {"language=>"English", "color"=>"red"}
     def preferences(group = nil)
-      group = group.is_a?(Symbol) ? group.to_s : group
-      
       unless preferences_group_loaded?(group)
         preferences = preferences_group(group)
         
@@ -302,7 +300,6 @@ module Preferences
     #   user.preferred?(:color)             # => false
     def preferred?(name, group = nil)
       name = name.to_s
-      group = group.is_a?(Symbol) ? group.to_s : group
       assert_valid_preference(name)
       
       value = preferred(name, group)
@@ -328,7 +325,6 @@ module Preferences
     #   user.preferred(:color)            # => "blue"
     def preferred(name, group = nil)
       name = name.to_s
-      group = group.is_a?(Symbol) ? group.to_s : group
       assert_valid_preference(name)
       
       if preferences_group(group).include?(name)
@@ -366,12 +362,15 @@ module Preferences
     #   user.save!
     def write_preference(name, value, group = nil)
       name = name.to_s
-      group = group.is_a?(Symbol) ? group.to_s : group
       assert_valid_preference(name)
       
-      unless preferences_changed(group).include?(name)
+      preferences_changed = preferences_changed_group(group)
+      if preferences_changed.include?(name)
+        old = preferences_changed[name]
+        preferences_changed.delete(name) unless preference_value_changed?(name, old, value)
+      else
         old = clone_preference_value(name, group)
-        preferences_changed(group)[name] = old if preference_value_changed?(name, old, value)
+        preferences_changed[name] = old if preference_value_changed?(name, old, value)
       end
       
       value = convert_number_column_value(value) if preference_definitions[name].number?
@@ -380,8 +379,71 @@ module Preferences
       value
     end
     
+    # Whether any attributes have unsaved changes.
+    # 
+    # == Examples
+    # 
+    #   user = User.find(:first)
+    #   user.preferences_changed?                   # => false
+    #   user.write_preference(:color, 'red')
+    #   user.preferences_changed?                   # => true
+    #   user.save
+    #   user.preferences_changed?                   # => false
+    #   
+    #   # Groups
+    #   user.preferences_changed?(:car)             # => false
+    #   user.write_preference(:color, 'red', :car)
+    #   user.preferences_changed(:car)              # => true
+    def preferences_changed?(group = nil)
+      !preferences_changed_group(group).empty?
+    end
+    
+    # A list of the preferences that have unsaved changes.
+    # 
+    # == Examples
+    # 
+    #   user = User.find(:first)
+    #   user.preferences_changed                    # => []
+    #   user.write_preference(:color, 'red')
+    #   user.preferences_changed                    # => ["color"]
+    #   user.save
+    #   user.preferences_changed                    # => []
+    #   
+    #   # Groups
+    #   user.preferences_changed(:car)              # => []
+    #   user.write_preference(:color, 'red', :car)
+    #   user.preferences_changed(:car)              # => ["color"]
+    def preferences_changed(group = nil)
+      preferences_changed_group(group).keys
+    end
+    
+    # A map of the preferences that have changed in the current object.
+    # 
+    # == Examples
+    # 
+    #   user = User.find(:first)
+    #   user.preferred(:color)                      # => nil
+    #   user.preference_changes                     # => {}
+    #   
+    #   user.write_preference(:color, 'red')
+    #   user.preference_changes                     # => {"color" => [nil, "red"]}
+    #   user.save
+    #   user.preference_changes                     # => {}
+    #   
+    #   # Groups
+    #   user.preferred(:color, :car)                # => nil
+    #   user.preference_changes(:car)               # => {}
+    #   user.write_preference(:color, 'red', :car)
+    #   user.preference_changes(:car)               # => {"color" => [nil, "red"]}
+    def preference_changes(group = nil)
+      preferences_changed(group).inject({}) do |changes, preference|
+        changes[preference] = preference_change(preference, group)
+        changes
+      end
+    end
+    
     # Reloads the pereferences of this object as well as its attributes
-    def reload(*args)
+    def reload(*args) #:nodoc:
       result = super
       
       @preferences.clear if @preferences
@@ -400,7 +462,7 @@ module Preferences
       # Gets the set of preferences identified by the given group
       def preferences_group(group)
         @preferences ||= {}
-        @preferences[group] ||= {}
+        @preferences[group.is_a?(Symbol) ? group.to_s : group] ||= {}
       end
       
       # Determines whether the given group of preferences has already been
@@ -420,9 +482,20 @@ module Preferences
       
       # Keeps track of all preferences that have been changed so that they can
       # be properly updated in the database.  Maps group -> preference -> value.
-      def preferences_changed(group = nil)
+      def preferences_changed_group(group)
         @preferences_changed ||= {}
-        @preferences_changed[group] ||= {}
+        @preferences_changed[group.is_a?(Symbol) ? group.to_s : group] ||= {}
+      end
+      
+      # Determines whether a preference changed in the given group
+      def preference_changed?(name, group)
+        preferences_changed_group(group).include?(name)
+      end
+      
+      # Builds an array of [original_value, new_value] for the given preference.
+      # If the perference did not change, this will return nil.
+      def preference_change(name, group)
+        [preferences_changed_group(group)[name], preferred(name, group)] if preference_changed?(name, group)
       end
       
       # Determines whether the old value is different from the new value for the

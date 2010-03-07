@@ -1,5 +1,7 @@
 == master
 
+* Add #preferences_changed?, #preferences_changed, and #preference_changes
+* Fix preferences that are reverted externally still getting stored
 * Fix preference definition types not being used to typecast values
 * No longer allow both group and non-group preferences to be looked up at once (except for named scopes)
 * Add support for using Symbols to reference groups
