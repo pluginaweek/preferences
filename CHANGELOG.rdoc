@@ -1,5 +1,7 @@
 == master
 
+== 0.4.0 / 2010-03-07
+
 * Add {preference}_changed?, {preference}_was, {preference}_changed, {preference}_will_change!, and reset_{preference}!
 * Add #preferences_changed?, #preferences_changed, and #preference_changes
 * Fix preferences that are reverted externally still getting stored
