@@ -405,9 +405,9 @@ module Preferences
       group = group.is_a?(Symbol) ? group.to_s : group
       assert_valid_preference(name)
       
-      unless changed_preferences_group(group).include?(name)
+      unless preferences_changed(group).include?(name)
         old = clone_preference_value(name, group)
-        changed_preferences_group(group)[name] = old if preference_value_changed?(name, old, value)
+        preferences_changed(group)[name] = old if preference_value_changed?(name, old, value)
       end
       
       preferences_group(group)[name] = value
@@ -421,7 +421,7 @@ module Preferences
       
       @all_preferences_loaded = false
       @preferences.clear if @preferences
-      changed_preferences.clear
+      preferences_changed.clear
       
       result
     end
@@ -445,17 +445,6 @@ module Preferences
         @all_preferences_loaded || preference_definitions.length == preferences_group(group).length
       end
       
-      # Keeps track of all preferences that have been changed so that they can
-      # be properly updated in the database.  Maps group -> preference -> value.
-      def changed_preferences
-        @changed_preferences ||= {}
-      end
-      
-      # Gets the set of changed preferences identified by the given group
-      def changed_preferences_group(group)
-        changed_preferences[group] ||= {}
-      end
-      
       # Generates a clone of the current value stored for the preference with
       # the given name / group
       def clone_preference_value(name, group)
@@ -463,6 +452,17 @@ module Preferences
         value.duplicable? ? value.clone : value
       rescue TypeError, NoMethodError
         value
+      end
+      
+      # Keeps track of all preferences that have been changed so that they can
+      # be properly updated in the database.  Maps group -> preference -> value.
+      def preferences_changed(*args)
+        @preferences_changed ||= {}
+        if args.empty?
+          @preferences_changed
+        else
+          @preferences_changed[args.first] ||= {}
+        end
       end
       
       # Determines whether the old value is different from the new value for the
@@ -484,7 +484,7 @@ module Preferences
       # Updates any preferences that have been changed/added since the record
       # was last saved
       def update_preferences
-        changed_preferences.each do |group, preferences|
+        preferences_changed.each do |group, preferences|
           group_id, group_type = Preference.split_group(group)
           
           preferences.keys.each do |name|
@@ -497,7 +497,7 @@ module Preferences
           end
         end
         
-        changed_preferences.clear
+        preferences_changed.clear
       end
   end
 end
