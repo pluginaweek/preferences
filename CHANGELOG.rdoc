@@ -1,5 +1,7 @@
 == master
 
+* Add support for using Symbols to reference groups
+* Fix #reload not causing unsaved preferences to get reset
 * Raise exception if unknown preference is accessed
 * Rename #set_preference to #write_preference
 * Add caching of preference lookups
