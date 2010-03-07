@@ -181,6 +181,27 @@ Preferences are treated in a similar fashion to attributes.  For example,
 
 Preferences are stored in a separate table called "preferences".
 
+=== Tracking changes
+
+Similar to ActiveRecord attributes, unsaved changes to preferences can be
+tracked.  For example,
+
+  user.preferred_language               # => "English"
+  user.preferred_language_changed?      # => false
+  user.preferred_language = 'Spanish'
+  user.preferred_language_changed?      # => true
+  user.preferred_language_was           # => "English"
+  user.preferred_language_change        # => ["English", "Spanish"]
+  user.reset_preferred_language!
+  user.preferred_language               # => "English"
+
+Assigning the same value leaves the preference unchanged:
+
+  user.preferred_language               # => "English"
+  user.preferred_language = 'English'
+  user.preferred_language_changed?      # => false
+  user.preferred_language_change        # => nil
+
 == Testing
 
 Before you can run any tests, the following gem must be installed:
