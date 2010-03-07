@@ -1,4 +1,4 @@
-require "#{File.dirname(__FILE__)}/../test_helper"
+require File.expand_path(File.dirname(__FILE__) + '/../test_helper')
 
 class PreferenceDefinitionByDefaultTest < ActiveSupport::TestCase
   def setup
@@ -11,6 +11,10 @@ class PreferenceDefinitionByDefaultTest < ActiveSupport::TestCase
   
   def test_should_not_have_a_default_value
     assert_nil @definition.default_value
+  end
+  
+  def test_should_have_a_type
+    assert_equal :boolean, @definition.type
   end
   
   def test_should_type_cast_values_as_booleans
@@ -38,9 +42,23 @@ class PreferenceDefinitionWithDefaultValueTest < ActiveSupport::TestCase
   end
 end
 
+class PreferenceDefinitionWithStringifiedTypeTest < ActiveSupport::TestCase
+  def setup
+    @definition = Preferences::PreferenceDefinition.new(:notifications, 'any')
+  end
+  
+  def test_should_symbolize_type
+    assert_equal :any, @definition.type
+  end
+end
+
 class PreferenceDefinitionWithAnyTypeTest < ActiveSupport::TestCase
   def setup
     @definition = Preferences::PreferenceDefinition.new(:notifications, :any)
+  end
+  
+  def test_use_custom_type
+    assert_equal :any, @definition.type
   end
   
   def test_should_not_type_cast

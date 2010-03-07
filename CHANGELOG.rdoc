@@ -1,5 +1,7 @@
 == master
 
+* Add caching of preference lookups
+* Fix preferences being stored even if they didn't change
 * Release gems via rake-gemcutter instead of rubyforge
 * Add a generator for db migration to make installation a bit easier [Tim Lowrimore]
 * Add named scopes: #with_preferences and #without_preferences

@@ -179,7 +179,7 @@ module Preferences
       
       # Writer
       define_method("preferred_#{name}=") do |*args|
-        set_preference(*([name] + [args].flatten))
+        set_preference(*args.flatten.unshift(name))
       end
       alias_method "prefers_#{name}=", "preferred_#{name}="
       
@@ -275,31 +275,44 @@ module Preferences
     #   user.preferences('cars')
     #   => {"language"=>"English", "color"=>"red"}
     def preferences(*args)
-      if args.empty?
-        group = nil
-        conditions = {}
-      else
-        group = args.first
-        
-        # Split the actual group into its different parts (id/type) in case
-        # a record is passed in
-        group_id, group_type = Preference.split_group(group)
-        conditions = {:group_id => group_id, :group_type => group_type}
-      end
+      group = args.first
+      group = group.is_a?(Symbol) ? group.to_s : group
       
-      # Find all of the stored preferences
-      stored_preferences = self.stored_preferences.find(:all, :conditions => conditions)
-      
-      # Hashify name -> value or group -> name -> value
-      stored_preferences.inject(self.class.default_preferences.dup) do |all_preferences, preference|
-        if !group && (preference_group = preference.group)
-          preferences = all_preferences[preference_group] ||= self.class.default_preferences.dup
-        else
-          preferences = all_preferences
+      unless @all_preferences_loaded
+        if args.empty?
+          # Looking up all available preferences
+          loaded_preferences = stored_preferences
+          @all_preferences_loaded = true
+          
+          preferences_group(nil).reverse_merge!(self.class.default_preferences.dup)
+        elsif !preferences_group_loaded?(group)
+          # Looking up group preferences
+          group_id, group_type = Preference.split_group(group)
+          loaded_preferences = stored_preferences.find(:all, :conditions => {:group_id => group_id, :group_type => group_type})
+          
+          preferences_group(group).reverse_merge!(self.class.default_preferences.dup)
         end
         
-        preferences[preference.name] = preference.value
-        all_preferences
+        # Find all stored preferences and hashify group -> name -> value
+        loaded_preferences.inject(@preferences) do |preferences, preference|
+          preferences[preference.group] ||= self.class.default_preferences.dup
+          preferences[preference.group][preference.name] = preference.value
+          preferences
+        end if loaded_preferences
+      end
+      
+      # Generate a deep copy
+      if args.empty?
+        @preferences.inject({}) do |preferences, (group, group_preferences)|
+          if group.nil?
+            preferences.merge!(group_preferences)
+          else
+            preferences[group] = group_preferences.dup
+          end
+          preferences
+        end
+      else
+        @preferences[group].dup
       end
     end
     
@@ -323,6 +336,7 @@ module Preferences
     #   user.preferred?(:color)             # => false
     def preferred?(name, group = nil)
       name = name.to_s
+      group = group.is_a?(Symbol) ? group.to_s : group
       
       value = preferred(name, group)
       preference_definitions[name].query(value)
@@ -347,18 +361,23 @@ module Preferences
     #   user.preferred(:color)            # => "blue"
     def preferred(name, group = nil)
       name = name.to_s
+      group = group.is_a?(Symbol) ? group.to_s : group
       
-      if @preference_values && @preference_values[group] && @preference_values[group].include?(name)
+      if preferences_group(group).include?(name)
         # Value for this group/name has been written, but not saved yet:
         # grab from the pending values
-        value = @preference_values[group][name]
+        value = preferences_group(group)[name]
       else
         # Split the group being filtered
         group_id, group_type = Preference.split_group(group)
         
         # Grab the first preference; if it doesn't exist, use the default value
-        preference = stored_preferences.find(:first, :conditions => {:name => name, :group_id => group_id, :group_type => group_type})
+        unless preferences_group_loaded?(group)
+          preference = stored_preferences.find(:first, :conditions => {:name => name, :group_id => group_id, :group_type => group_type})
+        end
+        
         value = preference ? preference.value : preference_definitions[name].default_value
+        preferences_group(group)[name] = value
       end
       
       value
@@ -381,34 +400,95 @@ module Preferences
     #   user.save!
     def set_preference(name, value, group = nil)
       name = name.to_s
+      group = group.is_a?(Symbol) ? group.to_s : group
       
-      @preference_values ||= {}
-      @preference_values[group] ||= {}
-      @preference_values[group][name] = value
+      unless changed_preferences_group(group).include?(name)
+        old = clone_preference_value(name, group)
+        changed_preferences_group(group)[name] = old if preference_value_changed?(name, old, value)
+      end
+      
+      preferences_group(group)[name] = value
       
       value
     end
     
+    # Reloads the pereferences of this object as well as its attributes
+    def reload(*args)
+      result = super
+      
+      @all_preferences_loaded = false
+      @preferences.clear if @preferences
+      changed_preferences.clear
+      
+      result
+    end
+    
     private
+      # Gets the set of preferences identified by the given group
+      def preferences_group(group)
+        @preferences ||= {}
+        @preferences[group] ||= {}
+      end
+      
+      # Determines whether the given group of preferences has already been
+      # loaded from the database
+      def preferences_group_loaded?(group)
+        @all_preferences_loaded || preference_definitions.length == preferences_group(group).length
+      end
+      
+      # Keeps track of all preferences that have been changed so that they can
+      # be properly updated in the database.  Maps group -> preference -> value.
+      def changed_preferences
+        @changed_preferences ||= {}
+      end
+      
+      # Gets the set of changed preferences identified by the given group
+      def changed_preferences_group(group)
+        changed_preferences[group] ||= {}
+      end
+      
+      # Generates a clone of the current value stored for the preference with
+      # the given name / group
+      def clone_preference_value(name, group)
+        value = preferred(name, group)
+        value.duplicable? ? value.clone : value
+      rescue TypeError, NoMethodError
+        value
+      end
+      
+      # Determines whether the old value is different from the new value for the
+      # given preference.  This will use the typecasted value to determine
+      # equality.
+      def preference_value_changed?(name, old, value)
+        definition = preference_definitions[name]
+        if definition.type == :integer && old.nil?
+          # NULL gets stored in database for blank (i.e. '') values. Hence we
+          # don't record it as a change if the value changes from nil to ''.
+          value = nil if value.blank?
+        else
+          value = definition.type_cast(value)
+        end
+        
+        old != value
+      end
+      
       # Updates any preferences that have been changed/added since the record
       # was last saved
       def update_preferences
-        if @preference_values
-          @preference_values.each do |group, new_preferences|
-            group_id, group_type = Preference.split_group(group)
-            
-            new_preferences.each do |name, value|
-              attributes = {:name => name, :group_id => group_id, :group_type => group_type}
-              
-              # Find an existing preference or build a new one
-              preference = stored_preferences.find(:first, :conditions => attributes) ||  stored_preferences.build(attributes)
-              preference.value = value
-              preference.save!
-            end
-          end
+        changed_preferences.each do |group, preferences|
+          group_id, group_type = Preference.split_group(group)
           
-          @preference_values = nil
+          preferences.keys.each do |name|
+            attributes = {:name => name, :group_id => group_id, :group_type => group_type}
+            
+            # Find an existing preference or build a new one
+            preference = stored_preferences.find(:first, :conditions => attributes) || stored_preferences.build(attributes)
+            preference.value = preferred(name, group)
+            preference.save!
+          end
         end
+        
+        changed_preferences.clear
       end
   end
 end
