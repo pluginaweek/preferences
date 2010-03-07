@@ -85,6 +85,6 @@ desc 'Publish the release files to RubyForge.'
 task :release => [:gem, :package] do
   require 'rake/gemcutter'
   
-  Rake::Gemcutter::Tasks.new(spec).define
+  Rake::Gemcutter::Tasks.new(spec)
   Rake::Task['gem:push'].invoke
 end
