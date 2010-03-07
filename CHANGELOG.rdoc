@@ -1,5 +1,6 @@
 == master
 
+* Raise exception if unknown preference is accessed
 * Rename #set_preference to #write_preference
 * Add caching of preference lookups
 * Fix preferences being stored even if they didn't change

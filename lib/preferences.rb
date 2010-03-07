@@ -337,6 +337,7 @@ module Preferences
     def preferred?(name, group = nil)
       name = name.to_s
       group = group.is_a?(Symbol) ? group.to_s : group
+      assert_valid_preference(name)
       
       value = preferred(name, group)
       preference_definitions[name].query(value)
@@ -362,6 +363,7 @@ module Preferences
     def preferred(name, group = nil)
       name = name.to_s
       group = group.is_a?(Symbol) ? group.to_s : group
+      assert_valid_preference(name)
       
       if preferences_group(group).include?(name)
         # Value for this group/name has been written, but not saved yet:
@@ -401,6 +403,7 @@ module Preferences
     def write_preference(name, value, group = nil)
       name = name.to_s
       group = group.is_a?(Symbol) ? group.to_s : group
+      assert_valid_preference(name)
       
       unless changed_preferences_group(group).include?(name)
         old = clone_preference_value(name, group)
@@ -424,6 +427,12 @@ module Preferences
     end
     
     private
+      # Asserts that the given name is a valid preference in this model.  If it
+      # is not, then an ArgumentError exception is raised.
+      def assert_valid_preference(name)
+        raise(ArgumentError, "Unknown preference: #{name}") unless preference_definitions.include?(name)
+      end
+      
       # Gets the set of preferences identified by the given group
       def preferences_group(group)
         @preferences ||= {}

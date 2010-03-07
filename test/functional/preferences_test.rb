@@ -204,6 +204,11 @@ class PreferencesReaderTest < ModelPreferenceTest
     @user = create_user
   end
   
+  def test_should_raise_exception_if_invalid_preference_read
+    exception = assert_raise(ArgumentError) { @user.preferred(:invalid) }
+    assert_equal 'Unknown preference: invalid', exception.message
+  end
+  
   def test_use_default_value_if_not_stored
     assert_equal true, @user.preferred(:notifications)
   end
@@ -321,6 +326,11 @@ class PreferencesQueryTest < ModelPreferenceTest
     @user = create_user
   end
   
+  def test_should_raise_exception_if_invalid_preference_queried
+    exception = assert_raise(ArgumentError) { @user.preferred?(:invalid) }
+    assert_equal 'Unknown preference: invalid', exception.message
+  end
+  
   def test_should_be_true_if_present
     @user.preferred_language = 'English'
     assert_equal true, @user.preferred?(:language)
@@ -421,6 +431,11 @@ class PreferencesWriterTest < ModelPreferenceTest
     User.preference :notifications, :boolean, :default => true
     User.preference :language, :string, :default => 'English'
     @user = create_user(:login => 'admin')
+  end
+  
+  def test_should_raise_exception_if_invalid_preference_written
+    exception = assert_raise(ArgumentError) { @user.write_preference(:invalid, true) }
+    assert_equal 'Unknown preference: invalid', exception.message
   end
   
   def test_should_have_same_value_if_not_changed
