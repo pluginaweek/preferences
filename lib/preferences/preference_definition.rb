@@ -25,6 +25,11 @@ module Preferences
       @column.default
     end
     
+    # Determines whether column backing this preference stores numberic values
+    def number?
+      @column.number?
+    end
+    
     # Typecasts the value based on the type of preference that was defined.
     # This uses ActiveRecord's typecast functionality so the same rules for
     # typecasting a model's columns apply here.

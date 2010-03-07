@@ -344,6 +344,8 @@ module Preferences
         preferences_group(group)[name] = value
       end
       
+      definition = preference_definitions[name]
+      value = definition.type_cast(value) unless value.nil?
       value
     end
     alias_method :prefers, :preferred
@@ -372,6 +374,7 @@ module Preferences
         preferences_changed(group)[name] = old if preference_value_changed?(name, old, value)
       end
       
+      value = convert_number_column_value(value) if preference_definitions[name].number?
       preferences_group(group)[name] = value
       
       value
@@ -427,9 +430,11 @@ module Preferences
       # equality.
       def preference_value_changed?(name, old, value)
         definition = preference_definitions[name]
-        if definition.type == :integer && old.nil?
-          # NULL gets stored in database for blank (i.e. '') values. Hence we
-          # don't record it as a change if the value changes from nil to ''.
+        if definition.type == :integer && (old.nil? || old == 0)
+          # For nullable numeric columns, NULL gets stored in database for blank (i.e. '') values.
+          # Hence we don't record it as a change if the value changes from nil to ''.
+          # If an old value of 0 is set to '' we want this to get changed to nil as otherwise it'll
+          # be typecast back to 0 (''.to_i => 0)
           value = nil if value.blank?
         else
           value = definition.type_cast(value)

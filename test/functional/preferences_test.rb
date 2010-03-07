@@ -218,6 +218,11 @@ class PreferencesReaderTest < ModelPreferenceTest
     assert_equal false, @user.preferred(:notifications)
   end
   
+  def test_should_type_cast_based_on_preference_definition
+    @user.write_preference(:notifications, 'false')
+    assert_equal false, @user.preferred(:notifications)
+  end
+  
   def test_should_cache_stored_values
     create_preference(:owner => @user, :name => 'notifications', :value => false)
     assert_queries(1) { @user.preferred(:notifications) }
@@ -474,6 +479,16 @@ class PreferencesWriterTest < ModelPreferenceTest
     @user.save!
     
     assert_equal 0, @user.stored_preferences.count
+  end
+  
+  def test_should_create_stored_integer_preference_if_typecast_changed
+    User.preference :age, :integer, :default => 0
+    
+    @user.write_preference(:age, '')
+    @user.save!
+    
+    assert_nil @user.preferred(:age)
+    assert_equal 1, @user.stored_preferences.count
   end
   
   def test_should_create_stored_preference_if_value_changed

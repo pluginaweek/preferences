@@ -61,6 +61,10 @@ class PreferenceDefinitionWithAnyTypeTest < ActiveSupport::TestCase
     assert_equal :any, @definition.type
   end
   
+  def test_should_not_be_number
+    assert !@definition.number?
+  end
+  
   def test_should_not_type_cast
     assert_equal nil, @definition.type_cast(nil)
     assert_equal 0, @definition.type_cast(0)
@@ -95,6 +99,10 @@ end
 class PreferenceDefinitionWithBooleanTypeTest < ActiveSupport::TestCase
   def setup
     @definition = Preferences::PreferenceDefinition.new(:notifications)
+  end
+  
+  def test_should_not_be_number
+    assert !@definition.number?
   end
   
   def test_should_not_type_cast_if_value_is_nil
@@ -143,6 +151,10 @@ class PreferenceDefinitionWithNumericTypeTest < ActiveSupport::TestCase
     @definition = Preferences::PreferenceDefinition.new(:notifications, :integer)
   end
   
+  def test_should_be_number
+    assert @definition.number?
+  end
+  
   def test_should_type_cast_true_to_integer
     assert_equal 1, @definition.type_cast(true)
   end
@@ -171,6 +183,10 @@ end
 class PreferenceDefinitionWithStringTypeTest < ActiveSupport::TestCase
   def setup
     @definition = Preferences::PreferenceDefinition.new(:notifications, :string)
+  end
+  
+  def test_should_not_be_number
+    assert !@definition.number?
   end
   
   def test_should_type_cast_integers_to_strings
