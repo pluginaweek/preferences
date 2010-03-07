@@ -1,5 +1,6 @@
 == master
 
+* No longer allow both group and non-group preferences to be looked up at once (except for named scopes)
 * Add support for using Symbols to reference groups
 * Fix #reload not causing unsaved preferences to get reset
 * Raise exception if unknown preference is accessed

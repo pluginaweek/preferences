@@ -531,6 +531,12 @@ class PreferencesWriterTest < ModelPreferenceTest
     preference = @user.stored_preferences.first
     assert_nil preference.value
   end
+  
+  def test_should_not_query_for_old_value_if_preferences_loaded
+    @user.preferences
+    
+    assert_queries(0) { @user.write_preference(:notifications, false) }
+  end
 end
 
 class PreferencesGroupWriterTest < ModelPreferenceTest
@@ -655,6 +661,12 @@ class PreferencesLookupTest < ModelPreferenceTest
     assert_equal e = {'notifications' => false, 'language' => 'Latin'}, @user.preferences
   end
   
+  def test_should_use_unsaved_changes_over_stored_preferences
+    create_preference(:owner => @user, :name => 'notifications', :value => false)
+    @user.write_preference(:notifications, true)
+    assert_equal e = {'notifications' => true, 'language' => 'English'}, @user.preferences
+  end
+  
   def test_should_cache_results
     assert_queries(1) { @user.preferences }
     assert_queries(0) { @user.preferences }
@@ -716,15 +728,6 @@ class PreferencesGroupLookupTest < ModelPreferenceTest
     @user.preferred(:language, :chat)
     
     assert_queries(0) { @user.preferences(:chat) }
-  end
-  
-  def test_should_not_query_if_all_preferences_previously_loaded
-    create_preference(:owner => @user, :group_type => 'chat', :name => 'notifications', :value => false)
-    @user.preferences
-    
-    assert_queries(0) do
-      assert_equal e = {'notifications' => false, 'language' => 'English'}, @user.preferences(:chat)
-    end
   end
   
   def test_should_not_generate_same_object_twice
@@ -803,19 +806,8 @@ class PreferencesLookupWithGroupsTest < ModelPreferenceTest
     create_preference(:owner => @user, :group_type => 'chat', :name => 'notifications', :value => false)
   end
   
-  def test_include_group_preferences_if_known
-    assert_equal e = {
-      'notifications' => true, 'language' => 'English',
-      'chat' => {'notifications' => false, 'language' => 'English'}
-    }, @user.preferences
-  end
-  
-  def test_should_not_generate_same_object_twice
-    assert_not_same @user.preferences, @user.preferences
-  end
-  
-  def test_should_not_generate_same_group_object_twice
-    assert_not_same @user.preferences['chat'], @user.preferences['chat']
+  def test_not_include_group_preferences_by_default
+    assert_equal e = {'notifications' => true, 'language' => 'English'}, @user.preferences
   end
 end
 
