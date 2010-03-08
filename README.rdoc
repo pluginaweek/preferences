@@ -60,7 +60,7 @@ To define the preferences for a model, you can do so right within the model:
     preference :dark_chocolate, :default => true
     preference :color, :string
     preference :favorite_number
-    preference :language, :string, :default => 'English'
+    preference :language, :string, :default => 'English', :group_defaults => {:chat => 'Spanish'}
   end
 
 In the above model, 5 preferences have been defined:
