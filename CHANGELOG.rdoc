@@ -1,5 +1,8 @@
 == master
 
+* Add support for per-group default preferences
+* Fix unsaved boolean preferences getting overridden by defaults if value is false
+
 == 0.4.0 / 2010-03-07
 
 * Add {preference}_changed?, {preference}_was, {preference}_changed, {preference}_will_change!, and reset_{preference}!

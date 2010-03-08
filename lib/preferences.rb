@@ -51,6 +51,9 @@ module Preferences
     # 
     # Configuration options:
     # * <tt>:default</tt> - The default value for the preference. Default is nil.
+    # * <tt>:group_defaults</tt> - Defines the default values to use for various
+    #   groups.  This should map group_name -> defaults.  For ActiveRecord groups,
+    #   use the class name. 
     # 
     # == Examples
     # 
@@ -59,7 +62,7 @@ module Preferences
     # 
     #   class User < ActiveRecord::Base
     #     preference :notifications, :default => false
-    #     preference :color, :string, :default => 'red'
+    #     preference :color, :string, :default => 'red', :group_defaults => {:car => 'black'}
     #     preference :favorite_number, :integer
     #     preference :data, :any # Allows any data type to be stored
     #   end
@@ -152,9 +155,6 @@ module Preferences
         class_inheritable_hash :preference_definitions
         self.preference_definitions = {}
         
-        class_inheritable_hash :default_preferences
-        self.default_preferences = {}
-        
         has_many :stored_preferences, :as => :owner, :class_name => 'Preference'
         
         after_save :update_preferences
@@ -171,7 +171,6 @@ module Preferences
       name = name.to_s
       definition = PreferenceDefinition.new(name, *args)
       self.preference_definitions[name] = definition
-      self.default_preferences[name] = definition.default_value
       
       # Create short-hand accessor methods, making sure that the name
       # is method-safe in terms of what characters are allowed
@@ -249,11 +248,12 @@ module Preferences
       end
       
       preferences.each do |(group, preference), value|
-        preference = preference.to_s
-        value = preference_definitions[preference.to_s].type_cast(value)
-        is_default = default_preferences[preference.to_s] == value
-        
         group_id, group_type = Preference.split_group(group)
+        preference = preference.to_s
+        definition = preference_definitions[preference.to_s]
+        value = definition.type_cast(value)
+        is_default = definition.default_value(group_type) == value
+        
         table = "preferences_#{group_id}_#{group_type}_#{preference}"
         
         # Since each preference is a different record, they need their own
@@ -303,19 +303,21 @@ module Preferences
     #   user.preferences(:cars)
     #   => {"language=>"English", "color"=>"red"}
     def preferences(group = nil)
+      preferences = preferences_group(group)
+      
       unless preferences_group_loaded?(group)
-        preferences = preferences_group(group)
-        
         group_id, group_type = Preference.split_group(group)
         find_preferences(:group_id => group_id, :group_type => group_type).each do |preference|
-          preferences[preference.name] ||= preference.value
+          preferences[preference.name] = preference.value unless preferences.include?(preference.name)
         end
         
         # Add defaults
-        preferences.reverse_merge!(self.class.default_preferences.dup)
+        preference_definitions.each do |name, definition|
+          preferences[name] = definition.default_value(group_type) unless preferences.include?(name)
+        end
       end
       
-      preferences_group(group).dup
+      preferences.dup
     end
     
     # Queries whether or not a value is present for the given preference.
@@ -374,7 +376,7 @@ module Preferences
         group_id, group_type = Preference.split_group(group)
         preference = find_preferences(:name => name, :group_id => group_id, :group_type => group_type).first unless preferences_group_loaded?(group)
         
-        value = preference ? preference.value : preference_definitions[name].default_value
+        value = preference ? preference.value : preference_definitions[name].default_value(group_type)
         preferences_group(group)[name] = value
       end
       

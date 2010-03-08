@@ -6,17 +6,12 @@ class ModelPreferenceTest < ActiveRecord::TestCase
   
   def teardown
     User.preference_definitions.clear
-    User.default_preferences.clear
   end
 end
 
 class ModelWithoutPreferencesTest < ActiveRecord::TestCase
   def test_should_not_create_preference_definitions
     assert !Car.respond_to?(:preference_definitions)
-  end
-  
-  def test_should_not_create_default_preferences
-    assert !Car.respond_to?(:default_preferences)
   end
   
   def test_should_not_create_stored_preferences_association
@@ -37,10 +32,6 @@ class PreferencesAfterFirstBeingDefinedTest < ModelPreferenceTest
   
   def test_should_create_preference_definitions
     assert User.respond_to?(:preference_definitions)
-  end
-  
-  def test_should_create_default_preferences
-    assert User.respond_to?(:default_preferences)
   end
   
   def test_should_create_preference_scopes
@@ -136,10 +127,6 @@ class PreferencesAfterBeingDefinedTest < ModelPreferenceTest
   def test_should_include_new_definitions_in_preference_definitions
     assert_equal e = {'notifications' => @definition}, User.preference_definitions
   end
-  
-  def test_should_include_default_value_in_default_preferences
-    assert_equal e = {'notifications' => nil}, User.default_preferences
-  end
 end
 
 class PreferencesByDefaultTest < ModelPreferenceTest
@@ -154,10 +141,6 @@ class PreferencesByDefaultTest < ModelPreferenceTest
   
   def test_should_not_have_default_value
     assert_nil @definition.default_value
-  end
-  
-  def test_should_include_in_default_preferences
-    assert_equal e = {'notifications' => nil}, User.default_preferences
   end
   
   def test_should_only_have_default_preferences
@@ -203,10 +186,6 @@ class PreferencesWithCustomTypeTest < ModelPreferenceTest
     assert_nil @definition.default_value
   end
   
-  def test_should_include_in_default_preferences
-    assert_equal e = {'vehicle_id' => nil}, User.default_preferences
-  end
-  
   def test_should_only_have_default_preferences
     assert_equal e = {'vehicle_id' => nil}, @user.preferences
   end
@@ -226,10 +205,6 @@ class PreferencesWithCustomDefaultTest < ModelPreferenceTest
     assert_equal 'red', @definition.default_value
   end
   
-  def test_should_include_in_default_preferences
-    assert_equal e = {'color' => 'red'}, User.default_preferences
-  end
-  
   def test_should_only_have_default_preferences
     assert_equal e = {'color' => 'red'}, @user.preferences
   end
@@ -240,10 +215,6 @@ class PreferencesWithMultipleDefinitionsTest < ModelPreferenceTest
     User.preference :notifications, :default => true
     User.preference :color, :string, :default => 'red'
     @user = new_user
-  end
-  
-  def test_should_include_all_in_default_preferences
-    assert_equal e = {'notifications' => true, 'color' => 'red'}, User.default_preferences
   end
   
   def test_should_only_have_default_preferences
@@ -275,6 +246,11 @@ class PreferencesReaderTest < ModelPreferenceTest
   
   def test_use_default_value_if_not_stored
     assert_equal true, @user.preferred(:notifications)
+  end
+  
+  def test_should_use_group_default_value_if_not_stored
+    User.preference :language, :string, :default => 'English', :group_defaults => {:chat => 'Latin'}
+    assert_equal 'English', @user.preferred(:language)
   end
   
   def test_should_use_stored_value_if_stored
@@ -320,8 +296,13 @@ class PreferencesGroupReaderTest < ModelPreferenceTest
     @user = create_user
   end
   
-  def test_use_default_value_if_not_stored
+  def test_should_use_default_value_if_not_stored
     assert_equal true, @user.preferred(:notifications, :chat)
+  end
+  
+  def test_should_use_group_default_value_if_not_stored
+    User.preference :language, :string, :default => 'English', :group_defaults => {:chat => 'Latin'}
+    assert_equal 'Latin', @user.preferred(:language, :chat)
   end
   
   def test_should_use_stored_value_if_stored
@@ -956,7 +937,7 @@ end
 class PreferencesLookupTest < ModelPreferenceTest
   def setup
     User.preference :notifications, :boolean, :default => true
-    User.preference :language, :string, :default => 'English'
+    User.preference :language, :string, :default => 'English', :group_defaults => {:chat => 'Latin'}
     
     @user = create_user
   end
@@ -982,9 +963,9 @@ class PreferencesLookupTest < ModelPreferenceTest
   end
   
   def test_should_use_unsaved_changes_over_stored_preferences
-    create_preference(:owner => @user, :name => 'notifications', :value => false)
-    @user.write_preference(:notifications, true)
-    assert_equal e = {'notifications' => true, 'language' => 'English'}, @user.preferences
+    create_preference(:owner => @user, :name => 'notifications', :value => true)
+    @user.write_preference(:notifications, false)
+    assert_equal e = {'notifications' => false, 'language' => 'English'}, @user.preferences
   end
   
   def test_should_cache_results
@@ -1013,29 +994,29 @@ end
 class PreferencesGroupLookupTest < ModelPreferenceTest
   def setup
     User.preference :notifications, :boolean, :default => true
-    User.preference :language, :string, :default => 'English'
+    User.preference :language, :string, :default => 'English', :group_defaults => {:chat => 'Latin'}
     
     @user = create_user
   end
   
   def test_should_only_have_defaults_if_nothing_customized
-    assert_equal e = {'notifications' => true, 'language' => 'English'}, @user.preferences(:chat)
+    assert_equal e = {'notifications' => true, 'language' => 'Latin'}, @user.preferences(:chat)
   end
   
   def test_should_merge_defaults_with_unsaved_changes
     @user.write_preference(:notifications, false, :chat)
-    assert_equal e = {'notifications' => false, 'language' => 'English'}, @user.preferences(:chat)
+    assert_equal e = {'notifications' => false, 'language' => 'Latin'}, @user.preferences(:chat)
   end
   
   def test_should_merge_defaults_with_saved_changes
     create_preference(:owner => @user, :group_type => 'chat', :name => 'notifications', :value => false)
-    assert_equal e = {'notifications' => false, 'language' => 'English'}, @user.preferences(:chat)
+    assert_equal e = {'notifications' => false, 'language' => 'Latin'}, @user.preferences(:chat)
   end
   
   def test_should_merge_stored_preferences_with_unsaved_changes
     create_preference(:owner => @user, :group_type => 'chat', :name => 'notifications', :value => false)
-    @user.write_preference(:language, 'Latin', :chat)
-    assert_equal e = {'notifications' => false, 'language' => 'Latin'}, @user.preferences(:chat)
+    @user.write_preference(:language, 'Spanish', :chat)
+    assert_equal e = {'notifications' => false, 'language' => 'Spanish'}, @user.preferences(:chat)
   end
   
   def test_should_cache_results
@@ -1252,6 +1233,14 @@ class PreferencesWithScopeTest < ModelPreferenceTest
     assert_equal [@user], User.with_preferences(:chat => {:language => 'English'})
   end
   
+  def test_should_find_with_customized_default_group_preference
+    User.preference :country, :string, :default => 'US', :group_defaults => {:chat => 'UK'}
+    @customized_user.preferred_country = 'US', :chat
+    @customized_user.save!
+    
+    assert_equal [@user], User.with_preferences(:chat => {:country => 'UK'})
+  end
+  
   def test_should_find_with_multiple_default_group_preferences
     assert_equal [@user], User.with_preferences(:chat => {:notifications => nil, :language => 'English'})
   end
@@ -1326,6 +1315,14 @@ class PreferencesWithoutScopeTest < ModelPreferenceTest
   
   def test_should_find_with_default_group_preference
     assert_equal [@user], User.without_preferences(:chat => {:language => 'Latin'})
+  end
+  
+  def test_should_find_with_customized_default_group_preference
+    User.preference :country, :string, :default => 'US', :group_defaults => {:chat => 'UK'}
+    @customized_user.preferred_country = 'US', :chat
+    @customized_user.save!
+    
+    assert_equal [@user], User.without_preferences(:chat => {:country => 'US'})
   end
   
   def test_should_find_with_multiple_default_group_preferences

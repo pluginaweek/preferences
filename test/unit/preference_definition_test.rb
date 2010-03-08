@@ -42,6 +42,24 @@ class PreferenceDefinitionWithDefaultValueTest < ActiveSupport::TestCase
   end
 end
 
+class PreferenceDefinitionWithGroupDefaultsTest < ActiveSupport::TestCase
+  def setup
+    @definition = Preferences::PreferenceDefinition.new(:notifications, :boolean, :default => 1, :group_defaults => {:chat => 0})
+  end
+  
+  def test_should_use_default_for_default_group
+    assert_equal true, @definition.default_value
+  end
+  
+  def test_should_use_default_for_unknown_group
+    assert_equal true, @definition.default_value('email')
+  end
+  
+  def test_should_use_group_default_for_known_group
+    assert_equal false, @definition.default_value('chat')
+  end
+end
+
 class PreferenceDefinitionWithStringifiedTypeTest < ActiveSupport::TestCase
   def setup
     @definition = Preferences::PreferenceDefinition.new(:notifications, 'any')
