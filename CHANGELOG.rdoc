@@ -1,5 +1,7 @@
 == master
 
+== 0.4.1 / 2010-03-07
+
 * Add support for per-group default preferences
 * Fix unsaved boolean preferences getting overridden by defaults if value is false
 
