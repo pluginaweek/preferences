@@ -6,7 +6,7 @@
 
 API
 
-* http://api.pluginaweek.org/preferences
+* http://rdoc.info/projects/pluginaweek/preferences
 
 Bugs
 
