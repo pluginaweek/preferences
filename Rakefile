@@ -6,7 +6,7 @@ require 'rake/gempackagetask'
 
 spec = Gem::Specification.new do |s|
   s.name              = 'preferences'
-  s.version           = '0.4.1'
+  s.version           = '0.4.2'
   s.platform          = Gem::Platform::RUBY
   s.summary           = 'Adds support for easily creating custom preferences for ActiveRecord models'
   s.description       = s.summary

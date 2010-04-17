@@ -1,5 +1,7 @@
 == master
 
+== 0.4.2 / 2010-04-17
+
 * Fix #preferences lookup not typecasting values
 
 == 0.4.1 / 2010-03-07
