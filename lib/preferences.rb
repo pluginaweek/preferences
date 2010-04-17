@@ -317,7 +317,10 @@ module Preferences
         end
       end
       
-      preferences.dup
+      preferences.inject({}) do |typed_preferences, (name, value)|
+        typed_preferences[name] = value.nil? ? value : preference_definitions[name].type_cast(value)
+        typed_preferences
+      end
     end
     
     # Queries whether or not a value is present for the given preference.

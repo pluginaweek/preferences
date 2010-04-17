@@ -1,5 +1,7 @@
 == master
 
+* Fix #preferences lookup not typecasting values
+
 == 0.4.1 / 2010-03-07
 
 * Add support for per-group default preferences

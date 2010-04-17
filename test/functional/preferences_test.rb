@@ -968,6 +968,11 @@ class PreferencesLookupTest < ModelPreferenceTest
     assert_equal e = {'notifications' => false, 'language' => 'English'}, @user.preferences
   end
   
+  def test_should_typecast_unsaved_changes
+    @user.write_preference(:notifications, 'true')
+    assert_equal e = {'notifications' => true, 'language' => 'English'}, @user.preferences
+  end
+  
   def test_should_cache_results
     assert_queries(1) { @user.preferences }
     assert_queries(0) { @user.preferences }
@@ -1017,6 +1022,11 @@ class PreferencesGroupLookupTest < ModelPreferenceTest
     create_preference(:owner => @user, :group_type => 'chat', :name => 'notifications', :value => false)
     @user.write_preference(:language, 'Spanish', :chat)
     assert_equal e = {'notifications' => false, 'language' => 'Spanish'}, @user.preferences(:chat)
+  end
+  
+  def test_should_typecast_unsaved_changes
+    @user.write_preference(:notifications, 'true', :chat)
+    assert_equal e = {'notifications' => true, 'language' => 'English'}, @user.preferences
   end
   
   def test_should_cache_results
