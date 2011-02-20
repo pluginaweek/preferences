@@ -6,7 +6,7 @@
 
 API
 
-* http://rdoc.info/projects/pluginaweek/preferences
+* http://rdoc.info/github/pluginaweek/preferences/master/frames
 
 Bugs
 
