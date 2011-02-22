@@ -117,8 +117,8 @@ Write method:
 
 === Accessible preferences
 
-If you want a preference to be accessible via the `attributes` or `attributes=` method on the
-model, use the `accessible_preference` method:
+If you want a preference to be accessible via the +attributes+ or +attributes=+ method on the
+model, use the +accessible_preference+ method:
 
   class User < ActiveRecord::Base
     accessible_preference :hot_salsa
