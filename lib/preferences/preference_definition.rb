@@ -2,10 +2,14 @@ module Preferences
   # Represents the definition of a preference for a particular model
   class PreferenceDefinition
     # The data type for the content stored in this preference type
-    attr_reader :type
+    attr_reader :type, :accessible
+    alias :accessible? :accessible
     
     def initialize(name, *args) #:nodoc:
       options = args.extract_options!
+
+      @accessible = !!options.delete(:accessible)
+        
       options.assert_valid_keys(:default, :group_defaults)
       
       @type = args.first ? args.first.to_sym : :boolean

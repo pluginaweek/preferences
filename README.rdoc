@@ -115,6 +115,37 @@ Write method:
   user.write_preference(:hot_salsa, false)      # => false
   user.write_preference(:language, "English")   # => "English"
 
+=== Accessible preferences
+
+If you want a preference to be accessible via the `attributes` or `attributes=` method on the
+model, use the `accessible_preference` method:
+
+  class User < ActiveRecord::Base
+    accessible_preference :hot_salsa
+    accessible_preference :two_percent_milk
+  end
+
+Now, you can easily update all the preferences at once from your controllers:
+
+In the view:
+
+  - form_for @user do |f|
+    = f.check_box :prefers_hot_salsa
+    = f.check_box :prefers_two_percent_milk
+
+In the controller:
+
+  UsersController < ApplicationController
+    def update
+      @user = User.find(params[:id])
+      @user.attributes = params[:user]
+
+      flash.notice = 'Saved preferences' if @user.save
+
+      render 'edit'
+    end
+  end
+
 === Accessing all preferences
 
 To get the collection of all custom, stored preferences for a particular record,

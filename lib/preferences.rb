@@ -163,7 +163,7 @@ module Preferences
         # Named scopes
         scope :with_preferences, lambda {|preferences| build_preference_scope(preferences)}
         scope :without_preferences, lambda {|preferences| build_preference_scope(preferences, true)}
-        
+
         extend Preferences::ClassMethods
         include Preferences::InstanceMethods
       end
@@ -172,6 +172,8 @@ module Preferences
       name = name.to_s
       definition = PreferenceDefinition.new(name, *args)
       self.preference_definitions[name] = definition
+
+      attr_accessible :"prefers_#{name}" if definition.accessible?
       
       # Create short-hand accessor methods, making sure that the name
       # is method-safe in terms of what characters are allowed
@@ -223,8 +225,26 @@ module Preferences
       
       definition
     end
+
+    # Defines a preference that is accessible via the <tt>attributes</tt> method. This
+    # works by calling <tt>attr_accessible</tt> for the preference.
+    #
+    # Example:
+    #
+    #   class User < ActiveRecord::Base
+    #     accessible_preference :notifications
+    #   end
+    #
+    # This will add <tt>attr_accessible :prefers_notifications</tt> to the
+    # User model.
+    #
+    def accessible_preference(name, *args)
+      options = args.extract_options!.dup
+      options.merge!({ :accessible => true })
+      preference name, *(args << options)
+    end
   end
-  
+
   module ClassMethods #:nodoc:
     # Generates the scope for looking under records with a specific set of
     # preferences associated with them.
