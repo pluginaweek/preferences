@@ -11,12 +11,12 @@ spec = Gem::Specification.new do |s|
   s.summary           = 'Adds support for easily creating custom preferences for ActiveRecord models'
   s.description       = s.summary
   
-  s.files             = FileList['{app,generators,lib,test}/**/*'] + %w(CHANGELOG.rdoc init.rb LICENSE Rakefile README.rdoc) - FileList['test/app_root/{log,log/*,script,script/*}']
+  s.files             = FileList['{app,generators,lib,test}/**/*'] + %w(CHANGELOG.rdoc LICENSE Rakefile README.rdoc) - FileList['test/app_root/{log,log/*,script,script/*}']
   s.require_path      = 'lib'
   s.has_rdoc          = true
   s.test_files        = Dir['test/**/*_test.rb']
   
-  s.author            = 'Aaron Pfeifer'
+  s.author            = ['Aaron Pfeifer', 'Jack Dempsey']
   s.email             = 'aaron@pluginaweek.org'
   s.homepage          = 'http://www.pluginaweek.org'
   s.rubyforge_project = 'pluginaweek'
