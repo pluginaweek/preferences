@@ -16,7 +16,7 @@ spec = Gem::Specification.new do |s|
   s.has_rdoc          = true
   s.test_files        = Dir['test/**/*_test.rb']
   
-  s.author            = ['Aaron Pfeifer', 'Jack Dempsey']
+  s.authors           = ["Aaron Pfeifer", "Jack Dempsey"]
   s.email             = 'aaron@pluginaweek.org'
   s.homepage          = 'http://www.pluginaweek.org'
   s.rubyforge_project = 'pluginaweek'

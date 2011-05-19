@@ -5,7 +5,7 @@ Gem::Specification.new do |s|
   s.version = "0.5.0"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
-  s.authors = [["Aaron Pfeifer", "Jack Dempsey"]]
+  s.authors = ["Aaron Pfeifer", "Jack Dempsey"]
   s.date = %q{2011-05-19}
   s.description = %q{Adds support for easily creating custom preferences for ActiveRecord models}
   s.email = %q{aaron@pluginaweek.org}
