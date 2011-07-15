@@ -1,5 +1,5 @@
 require 'preferences/preference_definition'
-
+require 'preferences/engine'
 # Adds support for defining preferences on ActiveRecord models.
 # 
 # == Saving preferences
