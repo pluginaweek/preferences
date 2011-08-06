@@ -2,7 +2,6 @@ require 'rubygems'
 require 'rake'
 require 'rake/testtask'
 require 'rake/rdoctask'
-require 'rake/gempackagetask'
 
 spec = Gem::Specification.new do |s|
   s.name              = 'preferences'
@@ -60,16 +59,4 @@ task :gemspec do
   File.open("#{spec.name}.gemspec", 'w') do |f|
     f.write spec.to_ruby
   end
-end
-
-Rake::GemPackageTask.new(spec) do |p|
-  p.gem_spec = spec
-end
-
-desc 'Publish the release files to RubyForge.'
-task :release => :package do
-  require 'rake/gemcutter'
-  
-  Rake::Gemcutter::Tasks.new(spec)
-  Rake::Task['gem:push'].invoke
 end
