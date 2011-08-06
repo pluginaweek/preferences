@@ -1,4 +1,4 @@
-== preferences
+== preferences http://travis-ci.org/pluginaweek/preferences.png
 
 +preferences+ adds support for easily creating custom preferences for models.
 
@@ -15,6 +15,10 @@ Bugs
 Development
 
 * http://github.com/pluginaweek/preferences
+
+Testing
+
+* http://travis-ci.org/pluginaweek/preferences
 
 Source
 
