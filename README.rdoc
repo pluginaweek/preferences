@@ -10,7 +10,7 @@ API
 
 Bugs
 
-* http://pluginaweek.lighthouseapp.com/projects/13286-preferences
+* http://github.com/pluginaweek/preferences/issues
 
 Development
 
