@@ -20,6 +20,10 @@ Source
 
 * git://github.com/pluginaweek/preferences.git
 
+Mailing List
+
+* http://groups.google.com/group/pluginaweek-talk
+
 == Description
 
 Preferences for models within an application, such as for users, is a pretty
