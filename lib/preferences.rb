@@ -585,7 +585,12 @@ module Preferences
             preferences.keys.each do |name|
               # Find an existing preference or build a new one
               attributes = {:name => name, :group_id => group_id, :group_type => group_type}
-              preference = find_preferences(attributes).first || stored_preferences.build(attributes)
+
+              unless (preference = find_preferences(attributes).first)
+                preference = stored_preferences.build
+                attributes.each_pair { |attribute, value| preference[attribute] = value }
+              end
+
               preference.value = preferred(name, group)
               preference.save!
             end
