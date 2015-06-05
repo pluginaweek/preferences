@@ -152,7 +152,7 @@ module Preferences
     #   user.save!  # => true
     def preference(name, *args)
       unless included_modules.include?(InstanceMethods)
-        class_inheritable_hash :preference_definitions
+        class_attribute :preference_definitions
         self.preference_definitions = {}
         
         has_many :stored_preferences, :as => :owner, :class_name => 'Preference'
